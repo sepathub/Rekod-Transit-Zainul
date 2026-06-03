@@ -342,6 +342,7 @@ function doPost(e) {
             autoPullOnLoad(savedUrl);
           }, []);
 
+          // Auto Pull dengan Perlindungan (Merge data pintar agar tidak menindih input baharu di web)
           const autoPullOnLoad = async (url) => {
             setIsSyncing(true);
             setSyncStatus('saving');
@@ -372,14 +373,33 @@ function doPost(e) {
                   };
                 });
 
-                // Unique filter
+                // Membuang pendua id
                 const uniqueFormatted = formatted.filter((student, index, self) =>
                   index === self.findIndex((s) => s.id === student.id)
                 );
 
-                setStudents(uniqueFormatted);
+                // PENYELAMAT DATA: Gabungkan nama murid/kelas baharu dari Google Sheets dengan markah TP sedia ada di web
+                setStudents(prevStudents => {
+                  if (prevStudents.length === 0) return uniqueFormatted;
+                  
+                  return uniqueFormatted.map(cloudStud => {
+                    const localMatch = prevStudents.find(l => l.id === cloudStud.id);
+                    if (localMatch) {
+                      // Utamakan nama & kelas baharu dari Google Sheets, tetapi kekalkan markah TP / exam di web jika sedia ada
+                      return {
+                        ...cloudStud,
+                        scores: Object.keys(localMatch.scores).length > 0 ? localMatch.scores : cloudStud.scores,
+                        examScores: (localMatch.examScores?.upsa || localMatch.examScores?.uasa) ? localMatch.examScores : cloudStud.examScores,
+                        conclusion: localMatch.conclusion || cloudStud.conclusion,
+                        isCustomConclusion: localMatch.isCustomConclusion ?? cloudStud.isCustomConclusion
+                      };
+                    }
+                    return cloudStud;
+                  });
+                });
+
                 setSyncStatus('synced');
-                showToast("Auto-Sync: Data ditarik berjaya dari Google Sheets!");
+                showToast("Auto-Sync: Nama murid & kelas berjaya dikemas kini!");
               } else {
                 setSyncStatus('idle');
               }
@@ -391,7 +411,7 @@ function doPost(e) {
             }
           };
 
-          // Auto Sync Post Effects
+          // Auto Sync Post Effects (Debounced saving)
           useEffect(() => {
             if (!shouldAutoSync || !googleSheetUrl) return;
 
@@ -529,6 +549,7 @@ function doPost(e) {
           };
 
           const handleIndividualTPChange = (studentId, topic, val) => {
+            if (syncStatus === 'saving') return; // Penguncian perubahan semasa menyimpan data
             setStudents(prev => prev.map(s => {
               if (s.id === studentId) {
                 const newScores = { ...s.scores };
@@ -547,6 +568,7 @@ function doPost(e) {
           };
 
           const handleIndividualConclusionChange = (studentId, newText) => {
+              if (syncStatus === 'saving') return; // Kunci input jika proses sync sedang bermula
               setStudents(prev => prev.map(s => {
                   if (s.id === studentId) {
                       return { ...s, conclusion: newText, isCustomConclusion: true };
@@ -558,6 +580,7 @@ function doPost(e) {
           };
 
           const restoreAutomaticComment = (studentId) => {
+              if (syncStatus === 'saving') return;
               setStudents(prev => prev.map(s => {
                   if (s.id === studentId) {
                       const stats = calculateStudentPBD(s.scores, s.year);
@@ -571,6 +594,7 @@ function doPost(e) {
           };
 
           const handleBatchSetBulkTP = (tpValue) => {
+            if (syncStatus === 'saving') return;
             setStudents(prev => prev.map(s => {
               if (s.class === selectedClassEntry) {
                  const newScores = { ...s.scores, [bulkActiveTopic]: tpValue };
@@ -586,6 +610,7 @@ function doPost(e) {
           };
 
           const handleExamScoreChange = (studentId, examType, val) => {
+            if (syncStatus === 'saving') return;
             let numVal = val === "" ? "" : parseInt(val);
             if (numVal !== "" && (isNaN(numVal) || numVal < 0)) numVal = 0;
             if (numVal !== "" && numVal > 100) numVal = 100;
@@ -616,9 +641,10 @@ function doPost(e) {
                     <div className="flex flex-wrap gap-4 justify-center">
                       <button 
                         onClick={() => autoPullOnLoad(googleSheetUrl)}
-                        className="bg-white hover:bg-slate-50 text-slate-900 border-4 border-slate-900 px-6 py-3 rounded-2xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2"
+                        disabled={syncStatus === 'saving'}
+                        className={`bg-white hover:bg-slate-50 text-slate-900 border-4 border-slate-900 px-6 py-3 rounded-2xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2 ${syncStatus === 'saving' ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        <Icon name="download" size={16} /> Muat Semula Data
+                        <Icon name="download" size={16} /> {syncStatus === 'saving' ? 'Sedang Memuat...' : 'Muat Semula Data'}
                       </button>
                       <button 
                         onClick={() => setShowSettings(true)}
@@ -639,6 +665,16 @@ function doPost(e) {
 
             return (
               <div className="flex flex-col gap-8 animate-in fade-in pb-24 md:pb-0 relative z-10">
+                {/* AMARAN STATUS INTEGRASI DUA HALA */}
+                {syncStatus === 'saving' && (
+                  <div className="bg-amber-100 border-4 border-amber-500 p-4 rounded-2xl flex items-center gap-3 animate-pulse">
+                    <Icon name="alert" className="text-amber-600" />
+                    <span className="font-bold text-xs sm:text-sm text-amber-900">
+                      Amaran: Sistem sedang menyimpan data murid dan kelas ke Google Sheets. Kemas kini antaramuka disekat seketika untuk mengelakkan kehilangan atau kerosakan data.
+                    </span>
+                  </div>
+                )}
+
                 <div className="bg-yellow-300 border-4 border-slate-900 p-6 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] transform rotate-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div className="flex items-center gap-4">
                     <div className="p-4 bg-white border-4 border-slate-900 rounded-2xl animate-bounce">
@@ -769,7 +805,8 @@ function doPost(e) {
                   </div>
                   <div className="flex flex-wrap gap-3 items-center">
                      <select 
-                        className="bg-white border-4 border-slate-900 px-4 py-2.5 rounded-xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] outline-none cursor-pointer"
+                        disabled={syncStatus === 'saving'}
+                        className="bg-white border-4 border-slate-900 px-4 py-2.5 rounded-xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] outline-none cursor-pointer disabled:opacity-50"
                         value={selectedClassManage}
                         onChange={(e) => setSelectedClassManage(e.target.value)}
                      >
@@ -815,13 +852,15 @@ function doPost(e) {
                     <div className="bg-slate-200 p-2 rounded-3xl border-4 border-slate-900 flex gap-2 shadow-[4px_4px_0_0_#0f172a]">
                         <button 
                             onClick={() => setEntryMode("pukal")}
-                            className={`px-6 py-3 rounded-2xl font-black text-sm transition-all border-4 ${entryMode === "pukal" ? 'bg-yellow-400 border-slate-900 shadow-[2px_2px_0_0_#0f172a] translate-y-0.5' : 'bg-white border-transparent text-slate-500 hover:bg-slate-50'}`}
+                            disabled={syncStatus === 'saving'}
+                            className={`px-6 py-3 rounded-2xl font-black text-sm transition-all border-4 disabled:opacity-50 ${entryMode === "pukal" ? 'bg-yellow-400 border-slate-900 shadow-[2px_2px_0_0_#0f172a] translate-y-0.5' : 'bg-white border-transparent text-slate-500 hover:bg-slate-50'}`}
                         >
                             MOD PUKAL (KELAS)
                         </button>
                         <button 
                             onClick={() => setEntryMode("individu")}
-                            className={`px-6 py-3 rounded-2xl font-black text-sm transition-all border-4 ${entryMode === "individu" ? 'bg-cyan-400 border-slate-900 shadow-[2px_2px_0_0_#0f172a] translate-y-0.5' : 'bg-white border-transparent text-slate-500 hover:bg-slate-50'}`}
+                            disabled={syncStatus === 'saving'}
+                            className={`px-6 py-3 rounded-2xl font-black text-sm transition-all border-4 disabled:opacity-50 ${entryMode === "individu" ? 'bg-cyan-400 border-slate-900 shadow-[2px_2px_0_0_#0f172a] translate-y-0.5' : 'bg-white border-transparent text-slate-500 hover:bg-slate-50'}`}
                         >
                             MOD INDIVIDU (MURID)
                         </button>
@@ -834,7 +873,8 @@ function doPost(e) {
                             <div className="flex-1 bg-white border-4 border-slate-900 p-3 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
                                 <label className="text-xs font-black uppercase text-slate-900 block mb-2">Pilih Kelas</label>
                                 <select 
-                                    className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-yellow-500 outline-none cursor-pointer"
+                                    disabled={syncStatus === 'saving'}
+                                    className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-yellow-500 outline-none cursor-pointer disabled:opacity-50"
                                     value={selectedClassEntry}
                                     onChange={(e) => setSelectedClassEntry(e.target.value)}
                                 >
@@ -844,7 +884,8 @@ function doPost(e) {
                             <div className="flex-[2] bg-white border-4 border-slate-900 p-3 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
                                 <label className="text-xs font-black uppercase text-slate-900 block mb-2">Pilih Topik / Standard Kandungan</label>
                                 <select 
-                                    className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-sm rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-yellow-500 outline-none cursor-pointer"
+                                    disabled={syncStatus === 'saving'}
+                                    className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-sm rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-yellow-500 outline-none cursor-pointer disabled:opacity-50"
                                     value={bulkActiveTopic}
                                     onChange={(e) => setBulkActiveTopic(e.target.value)}
                                 >
@@ -857,7 +898,12 @@ function doPost(e) {
                             <span className="font-black text-slate-900 uppercase">Set TP Pukal:</span>
                             <div className="flex gap-2 flex-wrap">
                                 {[1,2,3,4,5,6].map(tp => (
-                                    <button key={`bulk-tp-${tp}`} onClick={() => handleBatchSetBulkTP(tp)} className={`w-10 h-10 rounded-xl font-black border-4 shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-1 active:translate-y-1 active:shadow-none ${TP_COLORS[tp]}`}>
+                                    <button 
+                                        key={`bulk-tp-${tp}`} 
+                                        onClick={() => handleBatchSetBulkTP(tp)} 
+                                        disabled={syncStatus === 'saving'}
+                                        className={`w-10 h-10 rounded-xl font-black border-4 shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-1 active:translate-y-1 active:shadow-none disabled:opacity-50 ${TP_COLORS[tp]}`}
+                                    >
                                         {tp}
                                     </button>
                                 ))}
@@ -885,7 +931,8 @@ function doPost(e) {
                                           <button 
                                             key={`tp-btn-${student.id}-${tp}`} 
                                             onClick={() => handleIndividualTPChange(student.id, bulkActiveTopic, tp)}
-                                            className={`w-10 h-10 rounded-xl font-black border-4 transition-all ${score === tp ? `${TP_COLORS[tp]} shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
+                                            disabled={syncStatus === 'saving'}
+                                            className={`w-10 h-10 rounded-xl font-black border-4 transition-all disabled:opacity-50 ${score === tp ? `${TP_COLORS[tp]} shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
                                           >
                                             {tp}
                                           </button>
@@ -895,19 +942,22 @@ function doPost(e) {
                                   <div className="flex gap-2 border-t-2 border-slate-900 pt-3">
                                       <button 
                                         onClick={() => handleIndividualTPChange(student.id, bulkActiveTopic, 'TH')}
-                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none ${score === 'TH' ? 'bg-red-500 border-slate-900 text-white' : 'bg-red-100 text-red-700 border-slate-900'}`}
+                                        disabled={syncStatus === 'saving'}
+                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-50 ${score === 'TH' ? 'bg-red-500 border-slate-900 text-white' : 'bg-red-100 text-red-700 border-slate-900'}`}
                                       >
                                           TH
                                       </button>
                                       <button 
                                         onClick={() => handleIndividualTPChange(student.id, bulkActiveTopic, 'PT')}
-                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none ${score === 'PT' ? 'bg-orange-500 border-slate-900 text-white' : 'bg-orange-100 text-orange-700 border-slate-900'}`}
+                                        disabled={syncStatus === 'saving'}
+                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-50 ${score === 'PT' ? 'bg-orange-500 border-slate-900 text-white' : 'bg-orange-100 text-orange-700 border-slate-900'}`}
                                       >
                                           PT
                                       </button>
                                       <button 
                                         onClick={() => handleIndividualTPChange(student.id, bulkActiveTopic, null)}
-                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs bg-slate-100 border-slate-900 text-slate-600 transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none`}
+                                        disabled={syncStatus === 'saving'}
+                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs bg-slate-100 border-slate-900 text-slate-600 transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-50`}
                                       >
                                           BD
                                       </button>
@@ -924,7 +974,8 @@ function doPost(e) {
                           <div className="flex-1 bg-white border-4 border-slate-900 p-3 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
                             <label className="text-xs font-black uppercase text-slate-900 block mb-2">Pilih Kelas</label>
                             <select 
-                              className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-cyan-500 outline-none cursor-pointer"
+                              disabled={syncStatus === 'saving'}
+                              className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-cyan-500 outline-none cursor-pointer disabled:opacity-50"
                               value={selectedClassEntry}
                               onChange={(e) => setSelectedClassEntry(e.target.value)}
                             >
@@ -934,7 +985,8 @@ function doPost(e) {
                           <div className="flex-[2] bg-white border-4 border-slate-900 p-3 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
                             <label className="text-xs font-black uppercase text-slate-900 block mb-2">Pilih Murid</label>
                             <select 
-                              className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-cyan-500 outline-none cursor-pointer"
+                              disabled={syncStatus === 'saving'}
+                              className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-cyan-500 outline-none cursor-pointer disabled:opacity-50"
                               value={selectedStudentIndividu}
                               onChange={(e) => setSelectedStudentIndividu(e.target.value)}
                             >
@@ -981,21 +1033,24 @@ function doPost(e) {
                                                                           <button 
                                                                             key={`ind-tp-btn-${tp}`} 
                                                                             onClick={() => handleIndividualTPChange(student.id, topic, tp)}
-                                                                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-black border-4 transition-all text-xs sm:text-sm ${score === tp ? `${TP_COLORS[tp]} shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
+                                                                            disabled={syncStatus === 'saving'}
+                                                                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-black border-4 transition-all text-xs sm:text-sm disabled:opacity-50 ${score === tp ? `${TP_COLORS[tp]} shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
                                                                           >
                                                                             {tp}
                                                                           </button>
                                                                       ))}
                                                                       <button 
                                                                             onClick={() => handleIndividualTPChange(student.id, topic, 'TH')}
-                                                                            className={`px-2 h-8 sm:h-10 rounded-lg font-black border-4 transition-all text-xs ${score === 'TH' ? `bg-slate-800 text-white border-slate-900 shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
+                                                                            disabled={syncStatus === 'saving'}
+                                                                            className={`px-2 h-8 sm:h-10 rounded-lg font-black border-4 transition-all text-xs disabled:opacity-50 ${score === 'TH' ? `bg-slate-800 text-white border-slate-900 shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
                                                                             title="Tidak Hadir"
                                                                       >
                                                                           TH
                                                                       </button>
                                                                       <button 
                                                                             onClick={() => handleIndividualTPChange(student.id, topic, 'PT')}
-                                                                            className={`px-2 h-8 sm:h-10 rounded-lg font-black border-4 transition-all text-xs ${score === 'PT' ? `bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
+                                                                            disabled={syncStatus === 'saving'}
+                                                                            className={`px-2 h-8 sm:h-10 rounded-lg font-black border-4 transition-all text-xs disabled:opacity-50 ${score === 'PT' ? `bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
                                                                             title="Pengecualian"
                                                                       >
                                                                           PT
@@ -1013,13 +1068,18 @@ function doPost(e) {
                                           <div className="flex justify-between items-center mb-4">
                                               <h3 className="font-black text-slate-900 flex items-center gap-2"><Icon name="sparkles" className="text-yellow-600" size={20} /> Ulasan Guru (Auto-jana)</h3>
                                               {student.isCustomConclusion && (
-                                                  <button onClick={() => restoreAutomaticComment(student.id)} className="text-xs font-black bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl border-2 border-blue-300 hover:bg-blue-200 transition-colors flex items-center gap-1">
+                                                  <button 
+                                                    onClick={() => restoreAutomaticComment(student.id)} 
+                                                    disabled={syncStatus === 'saving'}
+                                                    className="text-xs font-black bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl border-2 border-blue-300 hover:bg-blue-200 transition-colors flex items-center gap-1 disabled:opacity-50"
+                                                  >
                                                       <Icon name="refresh" size={14} /> Pulih Auto
                                                   </button>
                                               )}
                                           </div>
                                           <textarea 
-                                              className={`w-full p-4 rounded-2xl border-4 border-slate-900 font-bold text-sm shadow-[4px_4px_0_0_#0f172a] outline-none focus:ring-4 focus:ring-yellow-400 min-h-[120px] ${student.isCustomConclusion ? 'bg-white' : 'bg-slate-100 text-slate-700'}`}
+                                              disabled={syncStatus === 'saving'}
+                                              className={`w-full p-4 rounded-2xl border-4 border-slate-900 font-bold text-sm shadow-[4px_4px_0_0_#0f172a] outline-none focus:ring-4 focus:ring-yellow-400 min-h-[120px] disabled:opacity-50 ${student.isCustomConclusion ? 'bg-white' : 'bg-slate-100 text-slate-700'}`}
                                               value={student.conclusion}
                                               onChange={(e) => handleIndividualConclusionChange(student.id, e.target.value)}
                                               placeholder="Taip ulasan tersuai di sini..."
@@ -1045,7 +1105,8 @@ function doPost(e) {
                     <p className="text-slate-600 font-bold text-xs mt-1">Ujian Sesi Akademik (UPSA & UASA)</p>
                   </div>
                   <select 
-                    className="w-full sm:w-72 bg-white border-4 border-slate-900 text-slate-900 text-base rounded-2xl px-5 py-3 font-black focus:ring-4 focus:ring-lime-500 outline-none shadow-[4px_4px_0_0_#0f172a] cursor-pointer"
+                    disabled={syncStatus === 'saving'}
+                    className="w-full sm:w-72 bg-white border-4 border-slate-900 text-slate-900 text-base rounded-2xl px-5 py-3 font-black focus:ring-4 focus:ring-lime-500 outline-none shadow-[4px_4px_0_0_#0f172a] cursor-pointer disabled:opacity-50"
                     value={selectedClassExam}
                     onChange={(e) => setSelectedClassExam(e.target.value)}
                   >
@@ -1083,7 +1144,8 @@ function doPost(e) {
                                   <input 
                                     type="number" 
                                     min="0" max="100" placeholder="0-100"
-                                    className="w-24 p-2 bg-white text-slate-900 font-black text-center text-lg border-4 border-slate-900 rounded-xl shadow-[2px_2px_0_0_#0f172a] focus:ring-4 focus:ring-orange-300 outline-none"
+                                    disabled={syncStatus === 'saving'}
+                                    className="w-24 p-2 bg-white text-slate-900 font-black text-center text-lg border-4 border-slate-900 rounded-xl shadow-[2px_2px_0_0_#0f172a] focus:ring-4 focus:ring-orange-300 outline-none disabled:opacity-50"
                                     value={upsaMark}
                                     onChange={(e) => handleExamScoreChange(student.id, 'upsa', e.target.value)}
                                   />
@@ -1097,7 +1159,8 @@ function doPost(e) {
                                   <input 
                                     type="number" 
                                     min="0" max="100" placeholder="0-100"
-                                    className="w-24 p-2 bg-white text-slate-900 font-black text-center text-lg border-4 border-slate-900 rounded-xl shadow-[2px_2px_0_0_#0f172a] focus:ring-4 focus:ring-yellow-300 outline-none"
+                                    disabled={syncStatus === 'saving'}
+                                    className="w-24 p-2 bg-white text-slate-900 font-black text-center text-lg border-4 border-slate-900 rounded-xl shadow-[2px_2px_0_0_#0f172a] focus:ring-4 focus:ring-yellow-300 outline-none disabled:opacity-50"
                                     value={uasaMark}
                                     onChange={(e) => handleExamScoreChange(student.id, 'uasa', e.target.value)}
                                   />
@@ -1536,25 +1599,25 @@ function doPost(e) {
                       </div>
                     </div>
 
-                    {/* Cloud Auto-Sync Indicator Widget */}
+                    {/* Cloud Auto-Sync Indicator Widget dengan Kunci Status */}
                     <div className="flex items-center gap-3 bg-slate-100 border-4 border-slate-900 p-2 rounded-2xl">
                       <div className="px-3 py-1.5 bg-white border-2 border-slate-900 rounded-xl flex items-center gap-2 shadow-[2px_2px_0_0_#0f172a]">
                         {syncStatus === 'saving' && (
                           <React.Fragment>
                             <Icon name="cloudLightning" className="text-yellow-500 animate-bounce" size={16} />
-                            <span className="text-[10px] font-black text-yellow-600 uppercase">Menyimpan...</span>
+                            <span className="text-[10px] font-black text-yellow-600 uppercase">🟡 Menyimpan ke Cloud... (UI Dikunci)</span>
                           </React.Fragment>
                         )}
                         {syncStatus === 'synced' && (
                           <React.Fragment>
                             <Icon name="cloud" className="text-emerald-500" size={16} />
-                            <span className="text-[10px] font-black text-emerald-600 uppercase">Disinkron</span>
+                            <span className="text-[10px] font-black text-emerald-600 uppercase">🟢 Disinkron</span>
                           </React.Fragment>
                         )}
                         {syncStatus === 'error' && (
                           <React.Fragment>
-                            <Icon name="cloud" className="text-red-500" size={16} />
-                            <span className="text-[10px] font-black text-red-600 uppercase">Ralat Autosync</span>
+                            <Icon name="cloud" className="text-red-500 animate-pulse" size={16} />
+                            <span className="text-[10px] font-black text-red-600 uppercase">🔴 Ralat Autosync</span>
                           </React.Fragment>
                         )}
                         {syncStatus === 'idle' && (
@@ -1605,19 +1668,19 @@ function doPost(e) {
                     {syncStatus === 'saving' && (
                       <React.Fragment>
                         <Icon name="cloudLightning" className="text-yellow-500 animate-bounce" size={14} />
-                        <span className="text-[8px] font-black text-yellow-600 uppercase">Menyimpan...</span>
+                        <span className="text-[8px] font-black text-yellow-600 uppercase">🟡 Menyimpan...</span>
                       </React.Fragment>
                     )}
                     {syncStatus === 'synced' && (
                       <React.Fragment>
                         <Icon name="cloud" className="text-emerald-500" size={14} />
-                        <span className="text-[8px] font-black text-emerald-600 uppercase">Disinkron</span>
+                        <span className="text-[8px] font-black text-emerald-600 uppercase">🟢 Disinkron</span>
                       </React.Fragment>
                     )}
                     {syncStatus === 'error' && (
                       <React.Fragment>
                         <Icon name="cloud" className="text-red-500 animate-pulse" size={14} />
-                        <span className="text-[8px] font-black text-red-600 uppercase">Ralat</span>
+                        <span className="text-[8px] font-black text-red-600 uppercase">🔴 Ralat</span>
                       </React.Fragment>
                     )}
                     {syncStatus === 'idle' && (
