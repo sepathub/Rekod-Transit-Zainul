@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEM REKOD TRANSIT PBD SAINS KSSR</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts - Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- React & DOM CDN (Production version) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel CDN to compile JSX in-browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom Scrollbar for Neo-Brutalism Style */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border: 4px solid #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border: 4px solid #0f172a;
+            border-radius: 0px;
+        }
+        @media print {
+            body {
+                background: white !important;
+            }
+            .print\:hidden {
+                display: none !important;
+            }
+            .print\:border-none {
+                border: none !important;
+            }
+            .print\:p-0 {
+                padding: 0 !important;
+            }
+            .print\:shadow-none {
+                box-shadow: none !important;
+            }
+            .print\:bg-transparent {
+                background-color: transparent !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-[#f4f6f8] text-slate-900 min-h-screen relative overflow-x-hidden">
+
+    <div id="root"></div>
+
+    <!-- React Application Logic with Babel compilation -->
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const CURRENT_YEAR = "2026";
+        const SYSTEM_TITLE = "SISTEM REKOD TRANSIT PBD";
+        const TEACHER_NAME = "Cikgu Zainul Ariffin";
+        const SCHOOL_NAME = "SK Simpang Empat";
+
+        const TP_COLORS = {
+          1: "bg-red-400 text-slate-900 border-slate-900",
+          2: "bg-orange-400 text-slate-900 border-slate-900",
+          3: "bg-yellow-400 text-slate-900 border-slate-900",
+          4: "bg-green-400 text-slate-900 border-slate-900",
+          5: "bg-cyan-400 text-slate-900 border-slate-900",
+          6: "bg-purple-400 text-slate-900 border-slate-900"
+        };
+
+        const CLASSES = [
+          "1 Al-Farabi", "2 Al-Farabi", "3 Al-Farabi", 
+          "4 Al-Farabi", "5 Al-Farabi", "6 Al-Farabi"
+        ];
+
+        const DSKP_DATA = {
+          "1": {
+            "1.0 KEMAHIRAN SAINTIFIK": "Memerhati, Berkomunikasi",
+            "2.0 PERATURAN BILIK SAINS": "Mematuhi peraturan bilik sains",
+            "3.0 BENDA HIDUP & BUKAN HIDUP": "Mengenal pasti benda hidup & bukan hidup",
+            "4.0 MANUSIA": "Deria Manusia",
+            "5.0 HAIWAN": "Bahagian tubuh haiwan",
+            "6.0 TUMBUHAN": "Bahagian tumbuhan (Daun, Bunga, Batang, Akar)",
+            "7.0 MAGNET": "Bentuk & Tarikan magnet",
+            "8.0 PENYERAPAN": "Bahan menyerap & tidak menyerap air",
+            "9.0 BUMI": "Bentuk muka bumi, Tanah",
+            "10.0 ASAS BINAAN": "Bentuk asas (Segi tiga, Segi empat, Bulatan)"
+          },
+          "2": {
+            "1.0 KEMAHIRAN SAINTIFIK": "Memerhati, Mengelas, Mengukur",
+            "2.0 PERATURAN BILIK SAINS": "Mematuhi peraturan bilik sains",
+            "3.0 MANUSIA": "Pembiakan dan tumbesaran manusia",
+            "4.0 HAIWAN": "Pembiakan dan tumbesaran haiwan",
+            "5.0 TUMBUHAN": "Tumbesaran tumbuhan (Biji benih, Pucuk, Daun)",
+            "6.0 TERANG & GELAP": "Sumber cahaya dan bayang-bayang",
+            "7.0 LITAR ELEKTRIK": "Komponen litar elektrik (Sel kering, Mentol, Suis)",
+            "8.0 CAMPURAN": "Kaedah mengasingkan campuran",
+            "9.0 BUMI": "Kitar air semula jadi, Udara",
+            "10.0 TEKNOLOGI": "Set binaan model"
+          },
+          "3": {
+            "1.0 KEMAHIRAN SAINTIFIK": "Memerhati, Mengelas, Mengukur, Meramal, Membuat Inferens, Berkomunikasi",
+            "2.0 PERATURAN BILIK SAINS": "Mematuhi peraturan bilik sains",
+            "3.0 MANUSIA": "Gigi, Kelas makanan, Pencernaan",
+            "4.0 HAIWAN": "Tabiat pemakanan haiwan (Karnivor, Herbivor, Omnivor)",
+            "5.0 TUMBUHAN": "Cara pembiakan tumbuhan",
+            "6.0 PENGUKURAN": "Luas dan isi padu (Unit piawai)",
+            "7.0 KETUMPATAN": "Objek timbul dan tenggelam",
+            "8.0 ASID & ALKALI": "Sifat asid, alkali dan neutral menggunakan kertas litmus",
+            "9.0 SISTEM SURIA": "Ahli sistem suria, Planet",
+            "10.0 MESIN": "Takal (Fungsi dan cara kerja)"
+          },
+          "4": {
+            "1.0 KEMAHIRAN SAINTIFIK": "Mengeksperimen, Pemboleh ubah",
+            "2.0 PERATURAN BILIK SAINS": "Mematuhi peraturan bilik sains",
+            "3.0 PROSES HIDUP MANUSIA": "Pernafasan, Perkumuhan, Penyahtinjaan",
+            "4.0 PROSES HIDUP HAIWAN": "Organ pernafasan haiwan",
+            "5.0 PROSES HIDUP TUMBUHAN": "Tindak balas terhadap rangsangan, Fotosintesis",
+            "6.0 PENGUKURAN": "Panjang, Jisim, Isi padu cecair, Masa",
+            "7.0 SIFAT BAHAN": "Sumber asas bahan, Sifat bahan",
+            "8.0 PENGARATAN": "Faktor pengaratan",
+            "9.0 SISTEM SURIA": "Saiz dan Jarak planet dari Matahari",
+            "10.0 TEKNOLOGI": "Perkembangan teknologi"
+          },
+          "5": {
+            "1.0 KEMAHIRAN SAINTIFIK": "Kemahiran Proses Sains",
+            "2.0 PERATURAN BILIK SAINS": "Mematuhi peraturan bilik sains",
+            "3.0 PROSES HIDUP MANUSIA": "Sistem Rangka, Sistem Peredaran Darah",
+            "4.0 PROSES HIDUP HAIWAN": "Kemandirian spesies haiwan",
+            "5.0 PROSES HIDUP TUMBUHAN": "Kemandirian spesies tumbuhan, Pencaran biji benih",
+            "6.0 TENAGA": "Sumber & Bentuk Tenaga, Tenaga Boleh Baharu",
+            "7.0 SIFAT CAHAYA": "Cahaya bergerak lurus, Pantulan, Pembiasan",
+            "8.0 HABA": "Suhu, Pengembangan dan pengecutan bahan",
+            "9.0 JIRIM": "Keadaan jirim, Perubahan keadaan jirim",
+            "10.0 ASID & ALKALI": "Sifat kimia bahan",
+            "11.0 BUMI & ANGKASA": "Fasa Bulan, Buruj",
+            "12.0 TEKNOLOGI": "Kestabilan dan Kekuatan binaan"
+          },
+          "6": {
+            "1.0 KEMAHIRAN SAINTIFIK": "Kemahiran Proses Sains",
+            "2.0 PERATURAN BILIK SAINS": "Mematuhi peraturan bilik sains",
+            "3.0 MIKROORGANISMA": "Jenis, Proses hidup, Kesan mikroorganisma",
+            "4.0 INTERAKSI ANTARA HIDUPAN": "Interaksi haiwan & tumbuhan",
+            "5.0 PEMELIHARAAN & PEMULIHARAAN": "Haiwan dan tumbuhan terancam",
+            "6.0 DAYA": "Jenis daya, Geseran",
+            "7.0 KELAJUAN": "Unit kelajuan, Pengiraan kelajuan",
+            "8.0 PENGAWETAN MAKANAN": "Kerosakan makanan, Kaedah pengawetan",
+            "9.0 BAHAN BUANGAN": "Pengurusan bahan buangan terancang",
+            "10.0 GERHANA": "Gerhana Bulan, Gerhana Matahari",
+            "11.0 BURUJ": "Buruj dan fungsinya",
+            "12.0 MESIN": "Mesin ringkas, Mesin kompleks"
+          }
+        };
+
+        const APPS_SCRIPT_CODE = `function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
+  }
+  var headers = data[0];
+  var rows = [];
+  for (var i = 1; i < data.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = data[i][j];
+    }
+    rows.push(row);
+  }
+  return ContentService.createTextOutput(JSON.stringify(rows))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var payload = JSON.parse(e.postData.contents);
+  sheet.clear();
+  var headers = ["id", "name", "class", "scores", "examScores", "conclusion", "isCustomConclusion"];
+  sheet.appendRow(headers);
+  for (var i = 0; i < payload.length; i++) {
+    var row = payload[i];
+    sheet.appendRow([
+      row.id,
+      row.name,
+      row.class,
+      row.scores,
+      row.examScores,
+      row.conclusion,
+      row.isCustomConclusion
+    ]);
+  }
+  return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+        // Inline Custom SVG Icon Engine to ensure absolute offline / CDN-proof rendering
+        const Icon = ({ name, size = 20, className = "", strokeWidth = 2.5 }) => {
+          const icons = {
+            users: <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75" />,
+            save: <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z M17 21v-8H7v8 M7 3v5h8" />,
+            printer: <path d="M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6z" />,
+            download: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3" />,
+            dashboard: <path d="M3 3h7v9H3zm11 0h7v5h-7zm0 9h7v9h-7zM3 16h7v5H3z" />,
+            settings: <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />,
+            chart: <path d="M18 20V10M12 20V4M6 20v-6" />,
+            edit: <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />,
+            award: <path d="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M8.21 13.89L7 23l5-3 5 3-1.21-9.12" />,
+            plus: <path d="M12 5v14M5 12h14" />,
+            x: <path d="M18 6L6 18M6 6l12 12" />,
+            sparkles: <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-.877a.5.5 0 0 1 0-.972l6.135-.877A2 2 0 0 0 9.937 9.9l.877-6.135a.5.5 0 0 1 .972 0l.877 6.135a2 2 0 0 0 1.437 1.437l6.135.877a.5.5 0 0 1 0 .972l-6.135.877a2 2 0 0 0-1.437 1.437l-.877 6.135a.5.5 0 0 1-.972 0z" />,
+            star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />,
+            smile: <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M8 14s1.5 2 4 2 4-2 4-2 M9 9h.01 M15 9h.01" />,
+            shapes: <path d="M8.3 10a3.5 3.5 0 1 1 3.5-3.5A3.5 3.5 0 0 1 8.3 10Zm4.3 10.5h7.3a1 1 0 0 0 1-1V12.2a1 1 0 0 0-1-1h-7.3a1 1 0 0 0-1 1v7.3a1 1 0 0 0 1 1Zm-8-9a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z" />,
+            bookDashed: <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M12 2v2 M16 2v2 M20 6v2 M20 11v2 M4 6V4a1 1 0 0 1 1-1h3 M4 11v2 M4 16c0 .3.1.5.3.7" />,
+            cloud: <path d="M17.5 19A3.5 3.5 0 0 0 21 15.5c0-2.79-2.54-4.5-5-4.5-.54-2.31-2.14-4-4.5-4-2.87 0-4.85 2.1-5 5-2.29.44-4 2.44-4 4.5a3.5 3.5 0 0 0 3.5 3.5z" />,
+            cloudLightning: <path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 8.58 M13 11l-4 6h3l-3 6 4-6h-3z" />,
+            bookOpen: <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />,
+            alert: <><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></>,
+            chevronRight: <polyline points="9 18 15 12 9 6" />,
+            refresh: <path d="M23 4v6h-6 M1 20v-6h6 M3.51 9a9 9 0 0 1 14.85-3.36L23 10 M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />,
+            database: <><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5 M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6" /></>
+          };
+
+          return (
+            <svg 
+              className={className} 
+              width={size} 
+              height={size} 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth={strokeWidth} 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              {icons[name] || null}
+            </svg>
+          );
+        };
+
+        const generateConclusion = (stats) => {
+          const avg = parseFloat(stats.average);
+          let base = "Murid belum dinilai untuk penggal ini.";
+
+          if (stats.count > 0) {
+              if (avg >= 5.5) base = "Pencapaian sangat cemerlang. Murid mempamerkan pemahaman tahap tinggi dalam konsep Sains serta mampu mengaplikasikan kemahiran proses sains secara analitikal dan berkesan.";
+              else if (avg >= 4.5) base = "Pencapaian terpuji. Murid menguasai fakta dan konsep Sains dengan baik dan berupaya menyelesaikan tugasan amali dengan pengawasan yang minimum.";
+              else if (avg >= 3.5) base = "Pencapaian memuaskan. Murid telah melepasi tahap penguasaan minimum. Walaubagaimanapun, pemerhatian lanjut dalam kemahiran manipulatif perlu ditekankan.";
+              else if (avg >= 2.5) base = "Pencapaian sederhana. Murid memerlukan lebih bimbingan terutamanya dalam memahami terma-terma asas Sains and menjawab soalan kebat.";
+              else base = "Perhatian khusus diperlukan. Murid didapati masih keliru dengan konsep asas Sains dan memerlukan intervensi pemulihan serta latihan berterusan.";
+
+              if (stats.hasTH) base += " Walaubagaimanapun, terdapat beberapa kemahiran yang tidak dapat ditaksir akibat ketidakhadiran.";
+              else if (stats.hasPT) base += " Terdapat pengecualian taksiran bagi beberapa modul.";
+              
+              return base;
+          } else {
+              if (stats.hasTH) return "Taksiran tidak dapat dilaksanakan kerana murid kerap tidak hadir ke sekolah tanpa sebab yang jelas. Sesi kaunseling / perbincangan waris disarankan.";
+              if (stats.hasPT) return "Murid diberikan pengecualian taksiran bagi mata pelajaran ini bersesuaian dengan keperluan khas atau status kesihatan semasa.";
+              return "Murid belum dinilai untuk penggal ini.";
+          }
+        };
+
+        const getThemeForTopic = (topicName) => {
+            const lower = topicName.toLowerCase();
+            if (lower.includes("kemahiran") || lower.includes("peraturan")) return "Inkuiri Dalam Sains";
+            if (lower.includes("manusia") || lower.includes("haiwan") || lower.includes("tumbuhan") || lower.includes("mikroorganisma") || lower.includes("pemeliharaan") || lower.includes("benda hidup")) return "Sains Hayat";
+            if (lower.includes("terang") || lower.includes("litar") || lower.includes("pengukuran") || lower.includes("ketumpatan") || lower.includes("tenaga") || lower.includes("cahaya") || lower.includes("haba") || lower.includes("daya") || lower.includes("kelajuan") || lower.includes("magnet") || lower.includes("penyerapan")) return "Sains Fizikal";
+            if (lower.includes("campuran") || lower.includes("asid") || lower.includes("jirim") || lower.includes("pengaratan") || lower.includes("pengawetan") || lower.includes("buangan")) return "Sains Bahan";
+            if (lower.includes("bumi") || lower.includes("suria") || lower.includes("gerhana") || lower.includes("buruj")) return "Bumi & Angkasa";
+            if (lower.includes("binaan") || lower.includes("teknologi") || lower.includes("mesin") || lower.includes("takal")) return "Teknologi & Kelestarian";
+            return "Lain-lain";
+        };
+
+        const getKPMGrade = (mark) => {
+          if (mark === "" || mark === null || mark === undefined) return { grade: "-", color: "text-slate-500", bg: "bg-slate-200", border: "border-slate-900", desc: "-" };
+          const num = parseInt(mark);
+          if (isNaN(num)) return { grade: "-", color: "text-slate-500", bg: "bg-slate-200", border: "border-slate-900", desc: "-" };
+          if (num >= 82) return { grade: "A", color: "text-emerald-700", bg: "bg-emerald-400", border: "border-slate-900", desc: "Cemerlang" };
+          if (num >= 66) return { grade: "B", color: "text-cyan-700", bg: "bg-cyan-400", border: "border-slate-900", desc: "Kepujian" };
+          if (num >= 50) return { grade: "C", color: "text-yellow-700", bg: "bg-yellow-400", border: "border-slate-900", desc: "Baik" };
+          if (num >= 35) return { grade: "D", color: "text-orange-700", bg: "bg-orange-400", border: "border-slate-900", desc: "Memuaskan" };
+          if (num >= 20) return { grade: "E", color: "text-red-700", bg: "bg-red-400", border: "border-slate-900", desc: "Mencapai Tahap Minimum" };
+          return { grade: "F", color: "text-rose-700", bg: "bg-rose-500", border: "border-slate-900", desc: "Tidak Mencapai Tahap Minimum" };
+        };
+
+        function App() {
+          const [activeTab, setActiveTab] = useState(1);
+          const [students, setStudents] = useState([]);
+          const [toast, setToast] = useState({ show: false, message: "" });
+          const [searchQuery, setSearchQuery] = useState("");
+
+          // Default user-supplied Google Sheet URL from state
+          const [googleSheetUrl, setGoogleSheetUrl] = useState("https://script.google.com/macros/s/AKfycbxx3nWMhBHwBWJUR6qcT3ihqBwWF6NfcF4E0AuNd3BDDKi81m49BIzUqjViOWXods-Wyw/exec");
+          const [isSyncing, setIsSyncing] = useState(false);
+          const [showSettings, setShowSettings] = useState(false);
+          const [shouldAutoSync, setShouldAutoSync] = useState(false);
+          const [syncStatus, setSyncStatus] = useState('idle'); // 'idle' | 'saving' | 'synced' | 'error'
+
+          // Extract dynamic classes based on student roster
+          const activeClasses = useMemo(() => {
+            if (students.length === 0) return CLASSES;
+            const unique = Array.from(new Set(students.map(s => s.class))).filter(Boolean);
+            return unique.sort((a, b) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'}));
+          }, [students]);
+
+          const [selectedClassManage, setSelectedClassManage] = useState(CLASSES[0]);
+          const [dashboardSelectedClass, setDashboardSelectedClass] = useState("Semua Kelas");
+          const [entryMode, setEntryMode] = useState("pukal"); 
+          const [selectedClassEntry, setSelectedClassEntry] = useState(CLASSES[3]); 
+          const [bulkActiveTopic, setBulkActiveTopic] = useState("");
+          const [selectedStudentIndividu, setSelectedStudentIndividu] = useState("");
+          const [selectedClassAnalysis, setSelectedClassAnalysis] = useState(CLASSES[3]);
+          const [selectedClassPrint, setSelectedClassPrint] = useState("Semua Kelas");
+          const [selectedStudentPrint, setSelectedStudentPrint] = useState(null);
+          const [selectedClassExam, setSelectedClassExam] = useState(CLASSES[3]);
+
+          // Sync selection indexes safely
+          useEffect(() => {
+            if (activeClasses.length > 0) {
+              if (!activeClasses.includes(selectedClassManage)) setSelectedClassManage(activeClasses[0]);
+              if (!activeClasses.includes(selectedClassEntry)) setSelectedClassEntry(activeClasses[0]);
+              if (!activeClasses.includes(selectedClassAnalysis)) setSelectedClassAnalysis(activeClasses[0]);
+              if (!activeClasses.includes(selectedClassExam)) setSelectedClassExam(activeClasses[0]);
+            }
+          }, [activeClasses]);
+
+          useEffect(() => {
+            const savedUrl = localStorage.getItem("google_sheet_pbd_url") || "https://script.google.com/macros/s/AKfycbxx3nWMhBHwBWJUR6qcT3ihqBwWF6NfcF4E0AuNd3BDDKi81m49BIzUqjViOWXods-Wyw/exec";
+            setGoogleSheetUrl(savedUrl);
+            autoPullOnLoad(savedUrl);
+          }, []);
+
+          const autoPullOnLoad = async (url) => {
+            setIsSyncing(true);
+            setSyncStatus('saving');
+            try {
+              const response = await fetch(url);
+              const rawData = await response.json();
+              
+              if (Array.isArray(rawData) && rawData.length > 0) {
+                const formatted = rawData.map(row => {
+                  let scores = {};
+                  let examScores = { upsa: "", uasa: "" };
+                  
+                  try { scores = row.scores ? JSON.parse(row.scores) : {}; } catch (e) {}
+                  try { examScores = row.examScores ? JSON.parse(row.examScores) : { upsa: "", uasa: "" }; } catch (e) {}
+
+                  const className = row.class ? String(row.class).trim() : "1 Al-Farabi";
+                  const studentName = row.name ? String(row.name).trim() : "Murid Tanpa Nama";
+
+                  return {
+                    id: String(row.id),
+                    name: studentName,
+                    class: className,
+                    year: className.split(" ")[0] || "1",
+                    scores: scores,
+                    examScores: examScores,
+                    conclusion: row.conclusion || "",
+                    isCustomConclusion: row.isCustomConclusion === 'true' || row.isCustomConclusion === true
+                  };
+                });
+
+                // Unique filter
+                const uniqueFormatted = formatted.filter((student, index, self) =>
+                  index === self.findIndex((s) => s.id === student.id)
+                );
+
+                setStudents(uniqueFormatted);
+                setSyncStatus('synced');
+                showToast("Auto-Sync: Data ditarik berjaya dari Google Sheets!");
+              } else {
+                setSyncStatus('idle');
+              }
+            } catch (err) {
+              console.error("Gagal melakukan pull automatik", err);
+              setSyncStatus('error');
+            } finally {
+              setIsSyncing(false);
+            }
+          };
+
+          // Auto Sync Post Effects
+          useEffect(() => {
+            if (!shouldAutoSync || !googleSheetUrl) return;
+
+            const delayDebounceFn = setTimeout(async () => {
+              setSyncStatus('saving');
+              try {
+                const payload = students.map(s => ({
+                  id: s.id,
+                  name: s.name,
+                  class: s.class,
+                  scores: JSON.stringify(s.scores),
+                  examScores: JSON.stringify(s.examScores),
+                  conclusion: s.conclusion || "",
+                  isCustomConclusion: s.isCustomConclusion ? "true" : "false"
+                }));
+
+                await fetch(googleSheetUrl, {
+                  method: 'POST',
+                  mode: 'no-cors',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
+
+                setSyncStatus('synced');
+                setShouldAutoSync(false);
+                showToast("Data Auto-Simpan ke Google Sheets!");
+              } catch (err) {
+                console.error(err);
+                setSyncStatus('error');
+                showToast("Ralat Autosync: Sila semak sambungan!");
+              }
+            }, 2000); 
+
+            return () => clearTimeout(delayDebounceFn);
+          }, [students, shouldAutoSync, googleSheetUrl]);
+
+          const saveGoogleSheetUrl = (url) => {
+            setGoogleSheetUrl(url);
+            localStorage.setItem("google_sheet_pbd_url", url);
+            showToast("URL Google Sheets Berjaya Disimpan!");
+            autoPullOnLoad(url);
+          };
+
+          const showToast = (msg) => {
+            setToast({ show: true, message: msg });
+            setTimeout(() => setToast({ show: false, message: "" }), 2500);
+          };
+
+          const activeYear = selectedClassEntry.split(" ")[0] || "1";
+          const activeDSKP = useMemo(() => DSKP_DATA[activeYear] || {}, [activeYear]);
+          const activeTopics = useMemo(() => Object.keys(activeDSKP), [activeDSKP]);
+
+          useEffect(() => {
+            if (activeTopics.length > 0 && !activeTopics.includes(bulkActiveTopic)) {
+              setBulkActiveTopic(activeTopics[0]);
+            }
+            const classList = students.filter(s => s.class === selectedClassEntry);
+            if (classList.length > 0 && (!selectedStudentIndividu || classList.findIndex(s => s.id === selectedStudentIndividu) === -1)) {
+                setSelectedStudentIndividu(classList[0].id);
+            }
+          }, [selectedClassEntry, activeTopics, bulkActiveTopic, students, selectedStudentIndividu]);
+
+          const calculateStudentPBD = (scoresObj, yearStr) => {
+            const validTopics = Object.keys(DSKP_DATA[yearStr] || {});
+            let total = 0, count = 0, thCount = 0, ptCount = 0;
+            
+            validTopics.forEach(topic => {
+                const val = scoresObj[topic];
+                if (typeof val === 'number') {
+                    total += val;
+                    count++;
+                } else if (val === 'TH') {
+                    thCount++;
+                } else if (val === 'PT') {
+                    ptCount++;
+                }
+            });
+
+            const average = count > 0 ? (total / count).toFixed(1) : "0.0";
+            let band = "-";
+            const avgNum = parseFloat(average);
+            if (avgNum >= 5.5) band = "Tahap 6";
+            else if (avgNum >= 4.5) band = "Tahap 5";
+            else if (avgNum >= 3.5) band = "Tahap 4";
+            else if (avgNum >= 2.5) band = "Tahap 3";
+            else if (avgNum >= 1.5) band = "Tahap 2";
+            else if (avgNum > 0) band = "Tahap 1";
+
+            return { total, count, average, band, hasTH: thCount > 0, hasPT: ptCount > 0 };
+          };
+
+          const getDashboardStats = (className) => {
+            const filteredStudents = className === "Semua Kelas" 
+              ? students 
+              : students.filter(s => s.class === className);
+
+            let total = filteredStudents.length;
+            let assessed = 0;
+            
+            const pbdDist = { "TP 1": 0, "TP 2": 0, "TP 3": 0, "TP 4": 0, "TP 5": 0, "TP 6": 0 };
+            const upsaDist = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+            const uasaDist = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+
+            filteredStudents.forEach(s => {
+              if (Object.keys(s.scores).length > 0) assessed++;
+              const stats = calculateStudentPBD(s.scores, s.year);
+              if (stats.count > 0) {
+                const avg = parseFloat(stats.average);
+                let band = 0;
+                if (avg >= 5.5) band = 6;
+                else if (avg >= 4.5) band = 5;
+                else if (avg >= 3.5) band = 4;
+                else if (avg >= 2.5) band = 3;
+                else if (avg >= 1.5) band = 2;
+                else if (avg > 0) band = 1;
+                
+                if (band > 0) pbdDist[`TP ${band}`]++;
+              }
+
+              const upsaGrade = getKPMGrade(s.examScores?.upsa).grade;
+              if (upsaGrade !== "-") upsaDist[upsaGrade]++;
+
+              const uasaGrade = getKPMGrade(s.examScores?.uasa).grade;
+              if (uasaGrade !== "-") uasaDist[uasaGrade]++;
+            });
+
+            return {
+              total,
+              assessed,
+              percentAssessed: total > 0 ? ((assessed / total) * 100).toFixed(0) : 0,
+              pbdDist,
+              upsaDist,
+              uasaDist
+            };
+          };
+
+          const handleIndividualTPChange = (studentId, topic, val) => {
+            setStudents(prev => prev.map(s => {
+              if (s.id === studentId) {
+                const newScores = { ...s.scores };
+                if (val === null) delete newScores[topic]; 
+                else newScores[topic] = isNaN(parseInt(val)) ? val : parseInt(val);
+                
+                const stats = calculateStudentPBD(newScores, s.year);
+                const newConclusion = s.isCustomConclusion ? s.conclusion : generateConclusion(stats);
+
+                return { ...s, scores: newScores, conclusion: newConclusion };
+              }
+              return s;
+            }));
+            setShouldAutoSync(true);
+            setSyncStatus('saving');
+          };
+
+          const handleIndividualConclusionChange = (studentId, newText) => {
+              setStudents(prev => prev.map(s => {
+                  if (s.id === studentId) {
+                      return { ...s, conclusion: newText, isCustomConclusion: true };
+                  }
+                  return s;
+              }));
+              setShouldAutoSync(true);
+              setSyncStatus('saving');
+          };
+
+          const restoreAutomaticComment = (studentId) => {
+              setStudents(prev => prev.map(s => {
+                  if (s.id === studentId) {
+                      const stats = calculateStudentPBD(s.scores, s.year);
+                      return { ...s, conclusion: generateConclusion(stats), isCustomConclusion: false };
+                  }
+                  return s;
+              }));
+              setShouldAutoSync(true);
+              setSyncStatus('saving');
+              showToast("Ulasan Auto Dipulihkan!");
+          };
+
+          const handleBatchSetBulkTP = (tpValue) => {
+            setStudents(prev => prev.map(s => {
+              if (s.class === selectedClassEntry) {
+                 const newScores = { ...s.scores, [bulkActiveTopic]: tpValue };
+                 const stats = calculateStudentPBD(newScores, s.year);
+                 const newConclusion = s.isCustomConclusion ? s.conclusion : generateConclusion(stats);
+                 return { ...s, scores: newScores, conclusion: newConclusion };
+              }
+              return s;
+            }));
+            setShouldAutoSync(true);
+            setSyncStatus('saving');
+            showToast(`Pukal Set TP ${tpValue} Selesai!`);
+          };
+
+          const handleExamScoreChange = (studentId, examType, val) => {
+            let numVal = val === "" ? "" : parseInt(val);
+            if (numVal !== "" && (isNaN(numVal) || numVal < 0)) numVal = 0;
+            if (numVal !== "" && numVal > 100) numVal = 100;
+
+            setStudents(prev => prev.map(s => {
+              if (s.id === studentId) {
+                return { ...s, examScores: { ...s.examScores, [examType]: numVal } };
+              }
+              return s;
+            }));
+            setShouldAutoSync(true);
+            setSyncStatus('saving');
+          };
+
+          // Render Tab Elements
+          const renderTab1 = () => {
+            if (students.length === 0) {
+              return (
+                <div className="flex flex-col gap-8 animate-in fade-in pb-24 md:pb-0 relative z-10">
+                  <div className="bg-yellow-300 border-4 border-slate-900 p-8 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] text-center transform rotate-1">
+                    <div className="p-4 bg-white border-4 border-slate-900 rounded-2xl inline-block mb-4">
+                      <Icon name="alert" size={48} className="text-pink-500 animate-bounce" />
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase tracking-tight mb-2">PANGKALAN DATA KOSONG</h2>
+                    <p className="text-slate-700 font-bold text-sm sm:text-base mb-6 max-w-xl mx-auto">
+                      Sila isi nama murid dan kelas di dalam **Google Sheets** anda, kemudian tekan butang di bawah untuk menghubungkan pangkalan data awan!
+                    </p>
+                    <div className="flex flex-wrap gap-4 justify-center">
+                      <button 
+                        onClick={() => autoPullOnLoad(googleSheetUrl)}
+                        className="bg-white hover:bg-slate-50 text-slate-900 border-4 border-slate-900 px-6 py-3 rounded-2xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2"
+                      >
+                        <Icon name="download" size={16} /> Muat Semula Data
+                      </button>
+                      <button 
+                        onClick={() => setShowSettings(true)}
+                        className="bg-cyan-300 hover:bg-cyan-400 text-slate-900 border-4 border-slate-900 px-6 py-3 rounded-2xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2"
+                      >
+                        <Icon name="settings" size={16} /> Konfigurasi Google Sheets
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            const stats = getDashboardStats(dashboardSelectedClass);
+            const maxValPbd = Math.max(...Object.values(stats.pbdDist), 1);
+            const maxValUpsa = Math.max(...Object.values(stats.upsaDist), 1);
+            const maxValUasa = Math.max(...Object.values(stats.uasaDist), 1);
+
+            return (
+              <div className="flex flex-col gap-8 animate-in fade-in pb-24 md:pb-0 relative z-10">
+                <div className="bg-yellow-300 border-4 border-slate-900 p-6 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] transform rotate-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-white border-4 border-slate-900 rounded-2xl animate-bounce">
+                      <Icon name="smile" className="text-pink-500" size={40} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase tracking-tight">{SCHOOL_NAME}</h2>
+                      <p className="text-slate-700 font-bold text-sm sm:text-base mt-1">{SYSTEM_TITLE} • {TEACHER_NAME}</p>
+                    </div>
+                  </div>
+                  <select 
+                    className="w-full md:w-64 bg-white border-4 border-slate-900 px-4 py-2.5 rounded-xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] outline-none cursor-pointer"
+                    value={dashboardSelectedClass}
+                    onChange={(e) => setDashboardSelectedClass(e.target.value)}
+                  >
+                    <option value="Semua Kelas">Semua Kelas</option>
+                    {activeClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Card 1: PBD TP Distribution */}
+                  <div className="bg-white border-4 border-slate-900 p-6 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] flex flex-col">
+                    <h3 className="font-black text-lg text-slate-900 uppercase mb-6 flex items-center gap-2 border-b-4 border-slate-900 pb-3"><Icon name="shapes" className="text-blue-500" /> Taburan TP PBD (Keseluruhan)</h3>
+                    <div className="flex-1 flex items-end justify-between gap-1 sm:gap-2 h-64 border-b-4 border-slate-900 pb-4">
+                      {Object.entries(stats.pbdDist).map(([tpLabel, val], index) => {
+                        const heightPct = (val / maxValPbd) * 80 + 10;
+                        const num = tpLabel.split(" ")[1];
+                        return (
+                          <div key={tpLabel} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                            <span className="text-xs font-black text-slate-900 mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white border-2 border-slate-900 px-1.5 py-0.5 rounded shadow absolute top-0 z-20">
+                              {val}
+                            </span>
+                            <div 
+                              style={{ height: `${heightPct}%` }}
+                              className={`w-full border-4 border-slate-900 rounded-t-xl transition-all duration-500 ${TP_COLORS[num]} group-hover:-translate-y-1 shadow-[2px_2px_0_0_#0f172a] group-hover:shadow-[4px_4px_0_0_#0f172a]`}
+                            ></div>
+                            <span className="text-[10px] font-black text-slate-700 mt-2 whitespace-nowrap">{tpLabel}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 flex justify-between items-center bg-slate-50 p-3 rounded-xl border-2 border-slate-900">
+                       <span className="text-xs font-bold text-slate-600">Pelajar Dinilai:</span>
+                       <span className="font-black text-slate-900">{stats.assessed} / {stats.total} ({stats.percentAssessed}%)</span>
+                    </div>
+                  </div>
+
+                  {/* Card 2: UPSA Grades */}
+                  <div className="bg-white border-4 border-slate-900 p-6 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] flex flex-col">
+                    <h3 className="font-black text-lg text-slate-900 uppercase mb-6 flex items-center gap-2 border-b-4 border-slate-900 pb-3"><Icon name="award" className="text-orange-500" /> Gred UPSA (Ujian Pertengahan)</h3>
+                    <div className="flex-1 flex items-end justify-between gap-1 sm:gap-2 h-64 border-b-4 border-slate-900 pb-4">
+                      {Object.entries(stats.upsaDist).map(([grade, val]) => {
+                        const heightPct = (val / maxValUpsa) * 80 + 10;
+                        let color = "bg-rose-500";
+                        if (grade === "A") color = "bg-emerald-400";
+                        if (grade === "B") color = "bg-cyan-400";
+                        if (grade === "C") color = "bg-yellow-400";
+                        if (grade === "D") color = "bg-orange-400";
+                        if (grade === "E") color = "bg-red-400";
+                        
+                        return (
+                          <div key={`upsa-${grade}`} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                            <span className="text-xs font-black text-slate-900 mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white border-2 border-slate-900 px-1.5 py-0.5 rounded shadow absolute top-0 z-20">
+                              {val}
+                            </span>
+                            <div 
+                              style={{ height: `${heightPct}%` }}
+                              className={`w-full border-4 border-slate-900 rounded-t-xl transition-all duration-500 ${color} group-hover:-translate-y-1 shadow-[2px_2px_0_0_#0f172a] group-hover:shadow-[4px_4px_0_0_#0f172a]`}
+                            ></div>
+                            <span className="text-xs font-black text-slate-700 mt-2">Gred {grade}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 text-center text-xs font-black text-slate-500 uppercase">
+                       Sesi Pertengahan Akademik
+                    </div>
+                  </div>
+
+                  {/* Card 3: UASA Grades */}
+                  <div className="bg-white border-4 border-slate-900 p-6 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] flex flex-col">
+                    <h3 className="font-black text-lg text-slate-900 uppercase mb-6 flex items-center gap-2 border-b-4 border-slate-900 pb-3"><Icon name="star" className="text-purple-500" /> Gred UASA (Ujian Akhir)</h3>
+                    <div className="flex-1 flex items-end justify-between gap-1 sm:gap-2 h-64 border-b-4 border-slate-900 pb-4">
+                      {Object.entries(stats.uasaDist).map(([grade, val]) => {
+                        const heightPct = (val / maxValUasa) * 80 + 10;
+                        let color = "bg-rose-500";
+                        if (grade === "A") color = "bg-emerald-400";
+                        if (grade === "B") color = "bg-cyan-400";
+                        if (grade === "C") color = "bg-yellow-400";
+                        if (grade === "D") color = "bg-orange-400";
+                        if (grade === "E") color = "bg-red-400";
+
+                        return (
+                          <div key={`uasa-${grade}`} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                            <span className="text-xs font-black text-slate-900 mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white border-2 border-slate-900 px-1.5 py-0.5 rounded shadow absolute top-0 z-20">
+                              {val}
+                            </span>
+                            <div 
+                              style={{ height: `${heightPct}%` }}
+                              className={`w-full border-4 border-slate-900 rounded-t-xl transition-all duration-500 ${color} group-hover:-translate-y-1 shadow-[2px_2px_0_0_#0f172a] group-hover:shadow-[4px_4px_0_0_#0f172a]`}
+                            ></div>
+                            <span className="text-xs font-black text-slate-700 mt-2">Gred {grade}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 text-center text-xs font-black text-slate-500 uppercase">
+                       Sesi Akhir Akademik
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          const renderTab2 = () => {
+            const classStudents = students.filter(s => s.class === selectedClassManage);
+            
+            return (
+              <div className="flex flex-col gap-8 animate-in fade-in pb-24 md:pb-0 h-full relative z-10">
+                <div className="bg-pink-400 border-4 border-slate-900 rounded-[2rem] p-6 text-slate-900 shadow-[8px_8px_0_0_#0f172a] flex flex-col md:flex-row md:items-center justify-between gap-6 transform rotate-1">
+                  <div>
+                    <h2 className="text-3xl font-black uppercase tracking-tight">Keahlian Kelas</h2>
+                    <p className="font-bold text-sm bg-white/95 px-3 py-1.5 rounded-xl border-2 border-slate-900 mt-2 inline-block">
+                       {classStudents.length} Pelajar Tersimpan dalam <span className="text-pink-600 font-extrabold">{selectedClassManage}</span>
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3 items-center">
+                     <select 
+                        className="bg-white border-4 border-slate-900 px-4 py-2.5 rounded-xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] outline-none cursor-pointer"
+                        value={selectedClassManage}
+                        onChange={(e) => setSelectedClassManage(e.target.value)}
+                     >
+                        {activeClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                     </select>
+                  </div>
+                </div>
+
+                <div className="bg-white border-4 border-slate-900 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] overflow-hidden flex-1">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-blue-400 border-b-4 border-slate-900 text-slate-900">
+                          <th className="p-4 font-black w-12 text-center border-r-4 border-slate-900">No</th>
+                          <th className="p-4 font-black w-32 border-r-4 border-slate-900">ID Murid</th>
+                          <th className="p-4 font-black border-slate-900">Nama Penuh (Seperti di Google Sheets)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-4 divide-slate-900">
+                        {classStudents.map((student, idx) => (
+                          <tr key={`${student.id}-${idx}`} className="hover:bg-yellow-100 transition-colors group bg-white">
+                            <td className="p-4 text-slate-900 font-black text-center border-r-4 border-slate-900 bg-slate-100 group-hover:bg-yellow-200">{idx + 1}</td>
+                            <td className="p-4 font-black text-slate-600 border-r-4 border-slate-900">{student.id}</td>
+                            <td className="p-4">
+                              <span className="font-black text-slate-900 text-base">{student.name}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          const renderTab3 = () => {
+            const classStudents = students.filter(s => s.class === selectedClassEntry);
+            
+            return (
+              <div className="flex flex-col gap-6 animate-in fade-in h-full relative z-10 pb-24 md:pb-0">
+                <div className="flex justify-center mb-2">
+                    <div className="bg-slate-200 p-2 rounded-3xl border-4 border-slate-900 flex gap-2 shadow-[4px_4px_0_0_#0f172a]">
+                        <button 
+                            onClick={() => setEntryMode("pukal")}
+                            className={`px-6 py-3 rounded-2xl font-black text-sm transition-all border-4 ${entryMode === "pukal" ? 'bg-yellow-400 border-slate-900 shadow-[2px_2px_0_0_#0f172a] translate-y-0.5' : 'bg-white border-transparent text-slate-500 hover:bg-slate-50'}`}
+                        >
+                            MOD PUKAL (KELAS)
+                        </button>
+                        <button 
+                            onClick={() => setEntryMode("individu")}
+                            className={`px-6 py-3 rounded-2xl font-black text-sm transition-all border-4 ${entryMode === "individu" ? 'bg-cyan-400 border-slate-900 shadow-[2px_2px_0_0_#0f172a] translate-y-0.5' : 'bg-white border-transparent text-slate-500 hover:bg-slate-50'}`}
+                        >
+                            MOD INDIVIDU (MURID)
+                        </button>
+                    </div>
+                </div>
+
+                {entryMode === "pukal" ? (
+                    <div className="flex flex-col gap-6 h-full">
+                        <div className="bg-yellow-300 rounded-[2rem] shadow-[6px_6px_0_0_#0f172a] border-4 border-slate-900 p-6 flex flex-col md:flex-row gap-6 sticky top-24 z-30 transform rotate-1">
+                            <div className="flex-1 bg-white border-4 border-slate-900 p-3 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
+                                <label className="text-xs font-black uppercase text-slate-900 block mb-2">Pilih Kelas</label>
+                                <select 
+                                    className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-yellow-500 outline-none cursor-pointer"
+                                    value={selectedClassEntry}
+                                    onChange={(e) => setSelectedClassEntry(e.target.value)}
+                                >
+                                    {activeClasses.map(c => <option key={`class-${c}`} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex-[2] bg-white border-4 border-slate-900 p-3 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
+                                <label className="text-xs font-black uppercase text-slate-900 block mb-2">Pilih Topik / Standard Kandungan</label>
+                                <select 
+                                    className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-sm rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-yellow-500 outline-none cursor-pointer"
+                                    value={bulkActiveTopic}
+                                    onChange={(e) => setBulkActiveTopic(e.target.value)}
+                                >
+                                    {activeTopics.map((t, idx) => <option key={`topic-${idx}`} value={t}>{t} - {activeDSKP[t]}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border-4 border-slate-900 rounded-[2rem] p-4 flex flex-wrap gap-4 items-center justify-between shadow-[4px_4px_0_0_#0f172a]">
+                            <span className="font-black text-slate-900 uppercase">Set TP Pukal:</span>
+                            <div className="flex gap-2 flex-wrap">
+                                {[1,2,3,4,5,6].map(tp => (
+                                    <button key={`bulk-tp-${tp}`} onClick={() => handleBatchSetBulkTP(tp)} className={`w-10 h-10 rounded-xl font-black border-4 shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-1 active:translate-y-1 active:shadow-none ${TP_COLORS[tp]}`}>
+                                        {tp}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto pb-24 mt-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {classStudents.map((student, index) => {
+                              const score = student.scores[bulkActiveTopic];
+                              return (
+                                <div key={`pukal-card-${student.id}-${index}`} className="bg-white rounded-3xl shadow-[6px_6px_0_0_#0f172a] border-4 border-slate-900 p-5 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-[8px_8px_0_0_#0f172a] transition-all group">
+                                  <div className="flex justify-between items-start border-b-4 border-slate-900 border-dashed pb-3">
+                                    <div>
+                                        <h3 className="font-black text-lg text-slate-900 uppercase leading-tight">{student.name}</h3>
+                                        <p className="text-xs font-bold text-slate-500 mt-1">{student.id}</p>
+                                    </div>
+                                    <div className={`w-12 h-12 flex items-center justify-center rounded-xl border-4 font-black text-xl shadow-[2px_2px_0_0_#0f172a] ${score ? (typeof score === 'number' ? TP_COLORS[score] : 'bg-slate-800 text-white border-slate-900') : 'bg-slate-100 border-slate-900 text-slate-400'}`}>
+                                        {score || "-"}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex flex-wrap gap-2 justify-center">
+                                      {[1,2,3,4,5,6].map(tp => (
+                                          <button 
+                                            key={`tp-btn-${student.id}-${tp}`} 
+                                            onClick={() => handleIndividualTPChange(student.id, bulkActiveTopic, tp)}
+                                            className={`w-10 h-10 rounded-xl font-black border-4 transition-all ${score === tp ? `${TP_COLORS[tp]} shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
+                                          >
+                                            {tp}
+                                          </button>
+                                      ))}
+                                  </div>
+                                  
+                                  <div className="flex gap-2 border-t-2 border-slate-900 pt-3">
+                                      <button 
+                                        onClick={() => handleIndividualTPChange(student.id, bulkActiveTopic, 'TH')}
+                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none ${score === 'TH' ? 'bg-red-500 border-slate-900 text-white' : 'bg-red-100 text-red-700 border-slate-900'}`}
+                                      >
+                                          TH
+                                      </button>
+                                      <button 
+                                        onClick={() => handleIndividualTPChange(student.id, bulkActiveTopic, 'PT')}
+                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none ${score === 'PT' ? 'bg-orange-500 border-slate-900 text-white' : 'bg-orange-100 text-orange-700 border-slate-900'}`}
+                                      >
+                                          PT
+                                      </button>
+                                      <button 
+                                        onClick={() => handleIndividualTPChange(student.id, bulkActiveTopic, null)}
+                                        className={`flex-1 py-1.5 rounded-xl border-4 font-black text-xs bg-slate-100 border-slate-900 text-slate-600 transition-all shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none`}
+                                      >
+                                          BD
+                                      </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-6 h-full">
+                        <div className="bg-cyan-300 rounded-[2rem] shadow-[6px_6px_0_0_#0f172a] border-4 border-slate-900 p-6 flex flex-col sm:flex-row gap-6 sticky top-24 z-30 transform -rotate-1">
+                          <div className="flex-1 bg-white border-4 border-slate-900 p-3 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
+                            <label className="text-xs font-black uppercase text-slate-900 block mb-2">Pilih Kelas</label>
+                            <select 
+                              className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-cyan-500 outline-none cursor-pointer"
+                              value={selectedClassEntry}
+                              onChange={(e) => setSelectedClassEntry(e.target.value)}
+                            >
+                              {activeClasses.map(c => <option key={`class-ind-${c}`} value={c}>{c}</option>)}
+                            </select>
+                          </div>
+                          <div className="flex-[2] bg-white border-4 border-slate-900 p-3 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
+                            <label className="text-xs font-black uppercase text-slate-900 block mb-2">Pilih Murid</label>
+                            <select 
+                              className="w-full bg-slate-100 border-4 border-slate-900 text-slate-900 text-base rounded-xl px-4 py-2 font-black focus:ring-4 focus:ring-cyan-500 outline-none cursor-pointer"
+                              value={selectedStudentIndividu}
+                              onChange={(e) => setSelectedStudentIndividu(e.target.value)}
+                            >
+                              {classStudents.map((s, idx) => <option key={`student-ind-${s.id}-${idx}`} value={s.id}>{s.name} ({s.id})</option>)}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto pb-24 mt-4">
+                          {selectedStudentIndividu && classStudents.find(s => s.id === selectedStudentIndividu) && (() => {
+                              const student = classStudents.find(s => s.id === selectedStudentIndividu);
+                              const stats = calculateStudentPBD(student.scores, student.year);
+                              
+                              return (
+                                  <div className="bg-white rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] border-4 border-slate-900 overflow-hidden">
+                                      <div className="bg-slate-900 p-6 text-white">
+                                          <h2 className="text-2xl font-black uppercase tracking-wider">{student.name}</h2>
+                                          <div className="flex gap-4 mt-2 font-bold text-slate-300 text-sm">
+                                              <span>ID: {student.id}</span>
+                                              <span>Purata TP: <span className="text-yellow-400 text-lg">{stats.average || "-"}</span></span>
+                                          </div>
+                                      </div>
+                                      
+                                      <div className="p-6">
+                                          <table className="w-full text-left border-collapse">
+                                              <thead>
+                                                  <tr className="border-b-4 border-slate-900 text-slate-900">
+                                                      <th className="pb-4 font-black w-2/3">Topik / Standard Kandungan</th>
+                                                      <th className="pb-4 font-black text-center">Tahap Penguasaan</th>
+                                                  </tr>
+                                              </thead>
+                                              <tbody className="divide-y-4 divide-slate-900 divide-dashed">
+                                                  {activeTopics.map((topic, tIdx) => {
+                                                      const score = student.scores[topic];
+                                                      return (
+                                                          <tr key={`topic-row-${tIdx}`} className="group hover:bg-slate-50 transition-colors">
+                                                              <td className="py-4 pr-4">
+                                                                  <span className="font-black text-slate-900 block text-base group-hover:text-cyan-600 transition-colors">{topic}</span>
+                                                                  <span className="text-xs font-bold text-slate-500">{activeDSKP[topic]}</span>
+                                                              </td>
+                                                              <td className="py-4">
+                                                                  <div className="flex flex-wrap gap-2 justify-center">
+                                                                      {[1,2,3,4,5,6].map(tp => (
+                                                                          <button 
+                                                                            key={`ind-tp-btn-${tp}`} 
+                                                                            onClick={() => handleIndividualTPChange(student.id, topic, tp)}
+                                                                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-black border-4 transition-all text-xs sm:text-sm ${score === tp ? `${TP_COLORS[tp]} shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
+                                                                          >
+                                                                            {tp}
+                                                                          </button>
+                                                                      ))}
+                                                                      <button 
+                                                                            onClick={() => handleIndividualTPChange(student.id, topic, 'TH')}
+                                                                            className={`px-2 h-8 sm:h-10 rounded-lg font-black border-4 transition-all text-xs ${score === 'TH' ? `bg-slate-800 text-white border-slate-900 shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
+                                                                            title="Tidak Hadir"
+                                                                      >
+                                                                          TH
+                                                                      </button>
+                                                                      <button 
+                                                                            onClick={() => handleIndividualTPChange(student.id, topic, 'PT')}
+                                                                            className={`px-2 h-8 sm:h-10 rounded-lg font-black border-4 transition-all text-xs ${score === 'PT' ? `bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0_0_#0f172a] scale-110` : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-900 hover:text-slate-900'}`}
+                                                                            title="Pengecualian"
+                                                                      >
+                                                                          PT
+                                                                      </button>
+                                                                  </div>
+                                                              </td>
+                                                          </tr>
+                                                      )
+                                                  })}
+                                              </tbody>
+                                          </table>
+                                      </div>
+
+                                      <div className="bg-yellow-50 p-6 border-t-4 border-slate-900">
+                                          <div className="flex justify-between items-center mb-4">
+                                              <h3 className="font-black text-slate-900 flex items-center gap-2"><Icon name="sparkles" className="text-yellow-600" size={20} /> Ulasan Guru (Auto-jana)</h3>
+                                              {student.isCustomConclusion && (
+                                                  <button onClick={() => restoreAutomaticComment(student.id)} className="text-xs font-black bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl border-2 border-blue-300 hover:bg-blue-200 transition-colors flex items-center gap-1">
+                                                      <Icon name="refresh" size={14} /> Pulih Auto
+                                                  </button>
+                                              )}
+                                          </div>
+                                          <textarea 
+                                              className={`w-full p-4 rounded-2xl border-4 border-slate-900 font-bold text-sm shadow-[4px_4px_0_0_#0f172a] outline-none focus:ring-4 focus:ring-yellow-400 min-h-[120px] ${student.isCustomConclusion ? 'bg-white' : 'bg-slate-100 text-slate-700'}`}
+                                              value={student.conclusion}
+                                              onChange={(e) => handleIndividualConclusionChange(student.id, e.target.value)}
+                                              placeholder="Taip ulasan tersuai di sini..."
+                                          />
+                                      </div>
+                                  </div>
+                              );
+                          })()}
+                        </div>
+                    </div>
+                )}
+              </div>
+            );
+          };
+
+          const renderTab6 = () => {
+            const classStudents = students.filter(s => s.class === selectedClassExam);
+            return (
+              <div className="flex flex-col gap-6 animate-in fade-in h-full pb-24 md:pb-0 relative z-10">
+                <div className="bg-lime-400 rounded-[2rem] shadow-[6px_6px_0_0_#0f172a] border-4 border-slate-900 p-6 flex flex-col sm:flex-row justify-between items-center gap-6 transform rotate-1 sticky top-24 z-30">
+                  <div className="text-center sm:text-left bg-white p-4 border-4 border-slate-900 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
+                    <h2 className="text-2xl font-black text-slate-900 uppercase">Kunci Masuk Markah Peperiksaan</h2>
+                    <p className="text-slate-600 font-bold text-xs mt-1">Ujian Sesi Akademik (UPSA & UASA)</p>
+                  </div>
+                  <select 
+                    className="w-full sm:w-72 bg-white border-4 border-slate-900 text-slate-900 text-base rounded-2xl px-5 py-3 font-black focus:ring-4 focus:ring-lime-500 outline-none shadow-[4px_4px_0_0_#0f172a] cursor-pointer"
+                    value={selectedClassExam}
+                    onChange={(e) => setSelectedClassExam(e.target.value)}
+                  >
+                    {activeClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                <div className="bg-white border-4 border-slate-900 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] overflow-hidden">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse text-sm min-w-max">
+                      <thead>
+                        <tr className="bg-slate-900 text-white border-b-4 border-slate-900">
+                          <th className="p-4 font-black w-12 text-center border-r-4 border-slate-900">No</th>
+                          <th className="p-4 font-black w-1/3 border-r-4 border-slate-900">Nama Murid</th>
+                          <th className="p-4 bg-orange-500 text-slate-900 font-black text-center border-r-4 border-slate-900">Ujian Pertengahan Sesi Akademik (UPSA)</th>
+                          <th className="p-4 bg-yellow-400 text-slate-900 font-black text-center">Ujian Akhir Sesi Akademik (UASA)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-4 divide-slate-900">
+                        {classStudents.map((student, idx) => {
+                          const upsaMark = student.examScores?.upsa ?? "";
+                          const uasaMark = student.examScores?.uasa ?? "";
+                          const upsaGrade = getKPMGrade(upsaMark);
+                          const uasaGrade = getKPMGrade(uasaMark);
+
+                          return (
+                            <tr key={`${student.id}-${idx}`} className="hover:bg-lime-100 transition-colors group">
+                              <td className="p-4 text-slate-900 font-black text-center border-r-4 border-slate-900 bg-slate-100 group-hover:bg-lime-200">{idx + 1}</td>
+                              <td className="p-4 border-r-4 border-slate-900">
+                                <span className="font-black text-slate-900 text-base">{student.name}</span>
+                                <span className="block text-xs font-bold text-slate-500 mt-1">{student.id}</span>
+                              </td>
+                              <td className="p-4 border-r-4 border-slate-900 bg-orange-50/50">
+                                <div className="flex items-center justify-center gap-4">
+                                  <input 
+                                    type="number" 
+                                    min="0" max="100" placeholder="0-100"
+                                    className="w-24 p-2 bg-white text-slate-900 font-black text-center text-lg border-4 border-slate-900 rounded-xl shadow-[2px_2px_0_0_#0f172a] focus:ring-4 focus:ring-orange-300 outline-none"
+                                    value={upsaMark}
+                                    onChange={(e) => handleExamScoreChange(student.id, 'upsa', e.target.value)}
+                                  />
+                                  <div className={`w-12 h-12 flex flex-col items-center justify-center border-4 border-slate-900 rounded-xl font-black text-lg shadow-[2px_2px_0_0_#0f172a] ${upsaGrade.bg}`}>
+                                    {upsaGrade.grade}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-4 bg-yellow-50/50">
+                                <div className="flex items-center justify-center gap-4">
+                                  <input 
+                                    type="number" 
+                                    min="0" max="100" placeholder="0-100"
+                                    className="w-24 p-2 bg-white text-slate-900 font-black text-center text-lg border-4 border-slate-900 rounded-xl shadow-[2px_2px_0_0_#0f172a] focus:ring-4 focus:ring-yellow-300 outline-none"
+                                    value={uasaMark}
+                                    onChange={(e) => handleExamScoreChange(student.id, 'uasa', e.target.value)}
+                                  />
+                                  <div className={`w-12 h-12 flex flex-col items-center justify-center border-4 border-slate-900 rounded-xl font-black text-lg shadow-[2px_2px_0_0_#0f172a] ${uasaGrade.bg}`}>
+                                    {uasaGrade.grade}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          const renderTab4 = () => {
+            const classStudents = students.filter(s => s.class === selectedClassAnalysis);
+            const yrStr = selectedClassAnalysis.split(" ")[0] || "1";
+            const yrTopics = Object.keys(DSKP_DATA[yrStr] || {});
+            
+            const themes = {};
+            yrTopics.forEach(t => {
+                const theme = getThemeForTopic(t);
+                if(!themes[theme]) themes[theme] = [];
+                themes[theme].push(t);
+            });
+
+            const THEME_COLORS = ["bg-pink-400", "bg-cyan-400", "bg-yellow-400", "bg-lime-400", "bg-purple-400", "bg-blue-400"];
+
+            return (
+              <div className="flex flex-col gap-6 pb-24 md:pb-0 relative z-10">
+                <div className="bg-orange-300 rounded-[2rem] shadow-[6px_6px_0_0_#0f172a] border-4 border-slate-900 p-6 flex flex-col md:flex-row justify-between items-center gap-6 transform rotate-1 sticky top-24 z-30">
+                  <div className="text-center md:text-left bg-white p-4 border-4 border-slate-900 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
+                    <h2 className="text-xl font-black text-slate-900 uppercase">Matriks Kelas</h2>
+                    <p className="text-slate-600 font-bold text-sm">Analisis keseluruhan penguasaan mengikut tema KSSR.</p>
+                  </div>
+                  <select 
+                    className="w-full md:w-72 bg-white border-4 border-slate-900 text-slate-900 text-base rounded-2xl px-5 py-3 font-black focus:ring-4 focus:ring-orange-500 outline-none shadow-[4px_4px_0_0_#0f172a] cursor-pointer"
+                    value={selectedClassAnalysis}
+                    onChange={(e) => setSelectedClassAnalysis(e.target.value)}
+                  >
+                    {activeClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                <div className="bg-white border-4 border-slate-900 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] overflow-hidden flex flex-col">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse text-sm min-w-max">
+                      <thead>
+                        <tr className="border-b-4 border-slate-900">
+                            <th rowSpan={2} className="p-3 bg-slate-900 text-white font-black sticky left-0 z-20 border-r-4 border-slate-900 w-12 text-center shadow-[4px_0_0_0_#0f172a]">No</th>
+                            <th rowSpan={2} className="p-3 bg-slate-900 text-white font-black sticky left-[3.25rem] z-20 border-r-4 border-slate-900 min-w-[200px] shadow-[4px_0_0_0_#0f172a]">Nama Murid</th>
+                            
+                            <th colSpan={2} className="p-2 bg-yellow-400 text-slate-900 text-xs text-center border-r-4 border-slate-900 font-black tracking-widest uppercase border-b-4">UJIAN</th>
+
+                            {Object.entries(themes).map(([themeName, topicsList], idx) => (
+                                <th key={themeName} colSpan={topicsList.length} className={`p-2 ${THEME_COLORS[idx % THEME_COLORS.length]} text-slate-900 text-[10px] sm:text-xs text-center border-r-4 border-slate-900 font-black tracking-widest uppercase border-b-4`}>
+                                    {themeName}
+                                </th>
+                            ))}
+                            <th rowSpan={2} className="p-3 bg-slate-900 text-white font-black text-center">Purata</th>
+                        </tr>
+                        <tr className="border-b-4 border-slate-900 bg-slate-100">
+                          <th className="p-2 text-slate-900 font-black border-r-4 border-slate-900 text-center w-20 text-[10px] uppercase bg-yellow-200">UPSA</th>
+                          <th className="p-2 text-slate-900 font-black border-r-4 border-slate-900 text-center w-20 text-[10px] uppercase bg-yellow-300">UASA</th>
+                          
+                          {Object.values(themes).flat().map((topic, i) => (
+                            <th key={i} className="p-2 text-slate-900 font-black border-r-4 border-slate-900 text-center w-16" title={topic}>
+                              <span className="text-[10px] uppercase truncate block w-14 mx-auto">{topic.split(" ")[0]}</span>
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-4 divide-slate-900">
+                        {classStudents.map((student, idx) => {
+                          const stats = calculateStudentPBD(student.scores, student.year);
+                          return (
+                            <tr key={`${student.id}-${idx}`} className="hover:bg-orange-100 transition-colors group">
+                              <td className="p-3 text-slate-900 font-black text-center sticky left-0 bg-slate-100 border-r-4 border-slate-900 group-hover:bg-orange-200 shadow-[4px_0_0_0_#0f172a]">{idx + 1}</td>
+                              <td className="p-3 font-black text-slate-900 sticky left-[3.25rem] bg-white border-r-4 border-slate-900 z-10 group-hover:bg-orange-50 shadow-[4px_0_0_0_#0f172a]">
+                                {student.name}
+                              </td>
+                              <td className="p-2 text-center border-r-4 border-slate-900 font-black text-slate-700 bg-orange-50/40">
+                                 {student.examScores?.upsa !== "" ? `${student.examScores?.upsa} (${getKPMGrade(student.examScores?.upsa).grade})` : "-"}
+                              </td>
+                              <td className="p-2 text-center border-r-4 border-slate-900 font-black text-slate-700 bg-yellow-50/40">
+                                 {student.examScores?.uasa !== "" ? `${student.examScores?.uasa} (${getKPMGrade(student.examScores?.uasa).grade})` : "-"}
+                              </td>
+                              
+                              {Object.values(themes).flat().map((topic, i) => {
+                                const score = student.scores[topic];
+                                return (
+                                  <td key={i} className="p-2 border-r-4 border-slate-900 text-center font-black">
+                                    {score ? (
+                                       <span className={`inline-block px-2.5 py-1 rounded-lg border-2 text-xs font-black ${score === 'TH' ? 'bg-red-300 text-red-900' : score === 'PT' ? 'bg-orange-300 text-orange-900' : TP_COLORS[score]}`}>
+                                           {score}
+                                       </span>
+                                    ) : "-"}
+                                  </td>
+                                )
+                              })}
+                              <td className="p-3 text-center font-black bg-slate-50 text-base text-slate-900">{stats.average || "-"}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="bg-white border-4 border-slate-900 rounded-[2rem] p-6 shadow-[6px_6px_0_0_#0f172a]">
+                   <h3 className="font-black text-slate-900 text-lg uppercase tracking-wider mb-4 border-b-4 border-slate-900 pb-2 flex items-center gap-2"><Icon name="bookDashed" size={20} /> Rujukan Kod Standard Kandungan</h3>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-slate-700">
+                       {yrTopics.map((topic, i) => (
+                           <div key={i} className="flex gap-2 p-2 bg-slate-50 border-2 border-slate-900 rounded-xl">
+                               <span className="text-cyan-600 font-black uppercase whitespace-nowrap">{topic}</span>
+                               <span className="text-slate-500">|</span>
+                               <span>{DSKP_DATA[yrStr][topic]}</span>
+                           </div>
+                       ))}
+                   </div>
+                </div>
+              </div>
+            );
+          };
+
+          const renderTab5 = () => {
+            const classFilteredStudents = selectedClassPrint === "Semua Kelas" 
+              ? students 
+              : students.filter(s => s.class === selectedClassPrint);
+
+            const filteredPrintList = classFilteredStudents.filter(s => 
+              s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+              s.id.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            if (!selectedStudentPrint) {
+              return (
+                <div className="bg-white border-4 border-slate-900 rounded-[2rem] p-8 max-w-4xl mx-auto shadow-[10px_10px_0_0_#0f172a] text-center pb-24 md:pb-8 relative z-10">
+                  <div className="inline-block bg-cyan-300 border-4 border-slate-900 px-4 py-2 rounded-2xl shadow-[4px_4px_0_0_#0f172a] mb-6 transform -rotate-1">
+                    <h2 className="text-xl font-black uppercase tracking-wider text-slate-900">Penjana Cetakan Laporan</h2>
+                  </div>
+                  <p className="font-bold text-slate-600 mb-8 max-w-lg mx-auto">Sila pilih kelas dan tapis nama murid untuk menjana laporan kad prestasi akademik & PBD 2-dalam-1 yang rasmi untuk waris.</p>
+
+                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                    <div className="flex-1 relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="Cari murid..." 
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border-4 border-slate-900 text-slate-900 text-base rounded-2xl font-black focus:ring-4 focus:ring-cyan-300 outline-none shadow-[4px_4px_0_0_#0f172a]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <select 
+                      className="w-full sm:w-64 bg-white border-4 border-slate-900 text-slate-900 text-base rounded-2xl px-5 py-3 font-black focus:ring-4 focus:ring-cyan-300 outline-none shadow-[4px_4px_0_0_#0f172a] cursor-pointer"
+                      value={selectedClassPrint}
+                      onChange={(e) => setSelectedClassPrint(e.target.value)}
+                    >
+                      <option value="Semua Kelas">Semua Kelas</option>
+                      {activeClasses.map(c => <option key={`print-cls-${c}`} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="max-w-2xl mx-auto text-left border-4 border-slate-900 rounded-2xl max-h-[400px] overflow-y-auto bg-slate-50 shadow-inner">
+                    {filteredPrintList.length > 0 ? (
+                      filteredPrintList.slice(0, 50).map((student, idx) => (
+                        <button
+                          key={`${student.id}-${idx}`}
+                          onClick={() => setSelectedStudentPrint(student)}
+                          className="w-full flex items-center justify-between p-4 border-b-4 border-slate-900 hover:bg-cyan-200 transition-colors group bg-white active:bg-cyan-300 shadow-sm"
+                        >
+                          <div>
+                            <div className="font-black text-slate-900 text-base uppercase">{student.name}</div>
+                            <div className="text-sm font-bold text-slate-600 mt-1">{student.id} • <span className="text-blue-600 bg-blue-100 px-2 py-0.5 rounded border-2 border-blue-200">{student.class}</span></div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-black bg-yellow-300 text-slate-900 border-2 border-slate-900 px-3 py-1.5 rounded-xl shadow-[2px_2px_0_0_#0f172a] opacity-0 group-hover:opacity-100 transition-all transform group-hover:rotate-3 hidden sm:block">PILIH</span>
+                            <Icon name="chevronRight" size={24} className="text-slate-400 group-hover:text-slate-900" />
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-10 text-center text-slate-500 flex flex-col items-center">
+                        <Icon name="alert" size={40} className="text-slate-300 mb-4" />
+                        <p className="font-black text-lg">Tiada murid dijumpai</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
+            const stats = calculateStudentPBD(selectedStudentPrint.scores, selectedStudentPrint.year);
+            const yrStr = selectedStudentPrint.year;
+            const yrTopics = Object.keys(DSKP_DATA[yrStr] || {});
+
+            return (
+              <div className="pb-24 md:pb-0 relative z-10">
+                <div className="mb-6 flex justify-between items-center print:hidden bg-yellow-300 p-4 rounded-3xl border-4 border-slate-900 shadow-[6px_6px_0_0_#0f172a] sticky top-24 z-40">
+                  <button 
+                    onClick={() => setSelectedStudentPrint(null)}
+                    className="text-base font-black text-slate-900 hover:-translate-y-1 active:translate-y-1 active:shadow-none transition-all bg-white border-4 border-slate-900 shadow-[4px_4px_0_0_#0f172a] px-5 py-2.5 rounded-2xl"
+                  >
+                    KEMBALI
+                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => window.print()}
+                      className="flex items-center px-6 py-2.5 bg-blue-500 text-white text-base font-black border-4 border-slate-900 rounded-2xl hover:-translate-y-1 shadow-[4px_4px_0_0_#0f172a] active:translate-y-1 active:shadow-none transition-all"
+                    >
+                      <Icon name="printer" size={20} className="mr-2" /> CETAK LAPORAN
+                    </button>
+                  </div>
+                </div>
+
+                {/* Outer A4 Page Container */}
+                <div className="bg-white shadow-[12px_12px_0_0_#0f172a] mx-auto p-10 border-4 border-slate-900 print:shadow-none print:border-none print:p-0 max-w-[210mm] min-h-[297mm]">
+                  
+                  {/* Official Letterhead Header */}
+                  <div className="text-center border-b-8 border-slate-900 pb-6 mb-8">
+                    <h1 className="text-3xl font-black uppercase tracking-widest text-slate-900 mb-2">{SCHOOL_NAME}</h1>
+                    <h2 className="text-xl font-black text-slate-900 uppercase bg-slate-100 inline-block px-6 py-2 border-4 border-slate-900 rounded-xl mb-2">Laporan Pentaksiran Bilik Darjah (PBD)</h2>
+                    <h3 className="text-lg font-bold text-slate-700">Mata Pelajaran: Sains KSSR (Semakan) - Tahun {yrStr}</h3>
+                  </div>
+
+                  {/* Student Profile Block */}
+                  <div className="border-4 border-slate-900 rounded-2xl p-6 mb-8 grid grid-cols-2 gap-y-4 bg-yellow-50 print:bg-transparent">
+                    <div>
+                      <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">Nama Murid</span>
+                      <span className="font-black text-slate-900 text-lg uppercase">{selectedStudentPrint.name}</span>
+                    </div>
+                    <div>
+                      <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">Kelas</span>
+                      <span className="font-black text-slate-900 text-lg">{selectedStudentPrint.class}</span>
+                    </div>
+                    <div>
+                      <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">ID Murid (MyKid)</span>
+                      <span className="font-black text-slate-900 text-lg">{selectedStudentPrint.id}</span>
+                    </div>
+                    <div>
+                      <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">Sesi Akademik</span>
+                      <span className="font-black text-slate-900 text-lg">{CURRENT_YEAR}</span>
+                    </div>
+                  </div>
+
+                  {/* Section A: Written Academic Exams */}
+                  <h4 className="font-black text-slate-900 mb-3 uppercase text-base bg-cyan-300 inline-block px-4 py-1.5 border-4 border-slate-900 rounded-xl">Bahagian A: Peperiksaan Akademik</h4>
+                  <table className="w-full border-collapse mb-10 text-sm border-4 border-slate-900 rounded-xl overflow-hidden">
+                    <thead>
+                      <tr className="bg-slate-900 text-white print:bg-slate-200 print:text-black">
+                        <th className="border-4 border-slate-900 p-3 text-left font-black text-base">Peperiksaan</th>
+                        <th className="border-4 border-slate-900 p-3 text-center w-28 font-black text-base">Markah</th>
+                        <th className="border-4 border-slate-900 p-3 text-center w-28 font-black text-base">Gred</th>
+                        <th className="border-4 border-slate-900 p-3 text-center font-black text-base">Pencapaian</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="bg-white">
+                        <td className="border-4 border-slate-900 p-3 font-bold text-slate-900 text-base">Ujian Pertengahan Sesi Akademik (UPSA)</td>
+                        <td className="border-4 border-slate-900 p-3 text-center font-black text-xl">{selectedStudentPrint.examScores?.upsa !== "" ? selectedStudentPrint.examScores?.upsa : "-"}</td>
+                        <td className={`border-4 border-slate-900 p-3 text-center font-black text-2xl print:text-black ${getKPMGrade(selectedStudentPrint.examScores?.upsa).color}`}>{getKPMGrade(selectedStudentPrint.examScores?.upsa).grade}</td>
+                        <td className="border-4 border-slate-900 p-3 text-center font-bold text-slate-800 text-base">{getKPMGrade(selectedStudentPrint.examScores?.upsa).desc || "-"}</td>
+                      </tr>
+                      <tr className="bg-slate-50">
+                        <td className="border-4 border-slate-900 p-3 font-bold text-slate-900 text-base">Ujian Akhir Sesi Akademik (UASA)</td>
+                        <td className="border-4 border-slate-900 p-3 text-center font-black text-xl">{selectedStudentPrint.examScores?.uasa !== "" ? selectedStudentPrint.examScores?.uasa : "-"}</td>
+                        <td className={`border-4 border-slate-900 p-3 text-center font-black text-2xl print:text-black ${getKPMGrade(selectedStudentPrint.examScores?.uasa).color}`}>{getKPMGrade(selectedStudentPrint.examScores?.uasa).grade}</td>
+                        <td className="border-4 border-slate-900 p-3 text-center font-bold text-slate-800 text-base">{getKPMGrade(selectedStudentPrint.examScores?.uasa).desc || "-"}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  {/* Section B: PBD Band Achievements */}
+                  <h4 className="font-black text-slate-900 mb-3 uppercase text-base bg-pink-300 inline-block px-4 py-1.5 border-4 border-slate-900 rounded-xl">Bahagian B: Tahap Penguasaan PBD</h4>
+                  <table className="w-full border-collapse mb-10 text-sm border-4 border-slate-900 rounded-xl overflow-hidden">
+                    <thead>
+                      <tr className="bg-slate-900 text-white print:bg-slate-200 print:text-black">
+                        <th className="border-4 border-slate-900 p-3 text-center w-12 font-black">No.</th>
+                        <th className="border-4 border-slate-900 p-3 text-left font-black">Standard Kandungan / Topik</th>
+                        <th className="border-4 border-slate-900 p-3 text-center w-32 font-black">Tahap (TP)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {yrTopics.map((topic, i) => {
+                        const score = selectedStudentPrint.scores[topic];
+                        let displayScore = score || "-";
+                        let colorClass = "";
+                        
+                        if (score === 'TH') { displayScore = 'TIDAK HADIR'; colorClass = 'text-red-700 text-sm print:text-black'; }
+                        else if (score === 'PT') { displayScore = 'PENGECUALIAN'; colorClass = 'text-orange-700 text-sm print:text-black'; }
+                        else if (score) { colorClass = 'text-2xl'; }
+
+                        return (
+                          <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                            <td className="border-4 border-slate-900 p-3 text-center font-black">{i + 1}.</td>
+                            <td className="border-4 border-slate-900 p-3">
+                              <span className="font-black block text-slate-900 text-base mb-1">{topic}</span>
+                              <span className="text-sm font-bold text-slate-700 block">{DSKP_DATA[yrStr][topic]}</span>
+                            </td>
+                            <td className={`border-4 border-slate-900 p-3 text-center font-black ${colorClass}`}>
+                              {displayScore}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-yellow-300 print:bg-slate-100">
+                        <td colSpan={2} className="border-4 border-slate-900 p-4 text-right font-black text-slate-900 uppercase text-base">Purata Pencapaian Keseluruhan:</td>
+                        <td className="border-4 border-slate-900 p-4 text-center font-black text-3xl text-slate-900">{stats.average || "-"}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+
+                  {/* Section C: Teacher Written Feedback */}
+                  <h4 className="font-black text-slate-900 mb-3 uppercase text-base bg-lime-300 inline-block px-4 py-1.5 border-4 border-slate-900 rounded-xl">Bahagian C: Ulasan Guru</h4>
+                  <div className="border-4 border-slate-900 rounded-2xl p-6 mb-12 min-h-[120px] text-justify leading-relaxed font-bold text-base text-slate-900 bg-white">
+                    {selectedStudentPrint.conclusion || "Tiada ulasan direkodkan lagi."}
+                  </div>
+
+                  {/* Signature Block */}
+                  <div className="grid grid-cols-2 gap-12 mt-24 print:mt-auto">
+                    <div className="text-center">
+                      <div className="border-b-4 border-slate-900 w-full mb-3"></div>
+                      <p className="font-black text-base text-slate-900 uppercase">{TEACHER_NAME}</p>
+                      <p className="text-sm font-bold text-slate-600">Guru Sains Tahun {yrStr}</p>
+                      <p className="text-sm font-bold text-slate-600">{SCHOOL_NAME}</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="border-b-4 border-slate-900 w-full mb-3"></div>
+                      <p className="font-black text-base text-slate-900 uppercase">Tandatangan Waris/Penjaga</p>
+                      <div className="flex flex-col items-start px-4 mt-3 gap-3">
+                         <p className="text-sm text-slate-600 font-black">Nama:</p>
+                         <p className="text-sm text-slate-600 font-black">Tarikh:</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          return (
+            <div className="min-h-screen bg-[#f4f6f8] font-sans text-slate-900 flex flex-col relative overflow-hidden pb-12">
+              {/* Decorative math background grids */}
+              <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.15]" 
+                   style={{ backgroundImage: 'linear-gradient(#0f172a 2px, transparent 2px), linear-gradient(90deg, #0f172a 2px, transparent 2px)', backgroundSize: '40px 40px' }}>
+              </div>
+
+              {/* Floating System-wide toast notifications */}
+              {toast.show && (
+                <div className="fixed top-28 right-8 z-50 animate-in fade-in slide-in-from-top-8 flex items-center bg-green-400 text-slate-900 px-6 py-4 rounded-2xl shadow-[6px_6px_0_0_#0f172a] font-black border-4 border-slate-900 text-lg">
+                  <Icon name="smile" size={24} className="mr-3 stroke-[3px]" /> {toast.message}
+                </div>
+              )}
+
+              {/* Google Sheets config modal details popup */}
+              {showSettings && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white border-4 border-slate-900 rounded-[2rem] p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[10px_10px_0_0_#0f172a] animate-in zoom-in-95">
+                    <div className="flex justify-between items-center border-b-4 border-slate-900 pb-4 mb-6">
+                      <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2"><Icon name="settings" size={28} /> Integrasi Google Sheets</h3>
+                      <button onClick={() => setShowSettings(false)} className="bg-red-400 hover:bg-red-500 text-slate-900 p-2 border-4 border-slate-900 rounded-xl shadow-[2px_2px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 transition-all">
+                        <Icon name="x" size={20} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="bg-yellow-200 border-4 border-slate-900 p-4 rounded-2xl shadow-[4px_4px_0_0_#0f172a]">
+                        <p className="font-black text-sm text-slate-900 uppercase mb-2 flex items-center gap-2"><Icon name="database" size={16} /> Cara Penyambungan Dua Hala:</p>
+                        <ol className="list-decimal list-inside text-xs font-bold space-y-1 text-slate-800">
+                          <li>Buka Google Sheets baharu.</li>
+                          <li>Pergi ke <strong className="bg-white px-1 py-0.5 border border-slate-900 rounded">Extensions &gt; Apps Script</strong>.</li>
+                          <li>Padam semua kod sedia ada, salin kod di bawah dan tampal.</li>
+                          <li>Klik <strong className="bg-white px-1 py-0.5 border border-slate-900 rounded">Deploy &gt; New deployment</strong>. Pilih jenis <strong className="bg-white px-1 py-0.5 border border-slate-900 rounded">Web app</strong>.</li>
+                          <li>Set <i>Execute as:</i> <strong>Me</strong> dan <i>Who has access:</i> <strong>Anyone</strong>.</li>
+                          <li>Salin URL Web App yang dihasilkan dan tampal di bawah.</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-black uppercase text-slate-900 mb-2">URL Web App Google Sheets Anda</label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            placeholder="https://script.google.com/macros/s/.../exec"
+                            className="flex-1 p-3 rounded-xl border-4 border-slate-900 outline-none font-black text-sm shadow-[4px_4px_0_0_#0f172a]"
+                            value={googleSheetUrl}
+                            onChange={(e) => setGoogleSheetUrl(e.target.value)}
+                          />
+                          <button 
+                            onClick={() => saveGoogleSheetUrl(googleSheetUrl)}
+                            className="bg-blue-400 text-slate-900 px-6 py-3 border-4 border-slate-900 rounded-xl font-black text-sm shadow-[4px_4px_0_0_#0f172a] hover:-translate-y-0.5 active:translate-y-0.5 transition-all"
+                          >
+                            Simpan URL
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-black uppercase text-slate-900 mb-2">Salin Kod Apps Script Ini:</label>
+                        <textarea 
+                          readOnly 
+                          rows={8}
+                          className="w-full p-3 font-mono text-xs bg-slate-900 text-green-400 rounded-xl border-4 border-slate-900 shadow-inner"
+                          value={APPS_SCRIPT_CODE}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* --- DESKTOP HEADER NAVIGATION --- */}
+              <header className="bg-white border-b-4 border-slate-900 shadow-[0_4px_0_0_#0f172a] sticky top-0 z-50 print:hidden hidden md:block">
+                <div className="max-w-[90rem] mx-auto px-6">
+                  <div className="flex flex-col md:flex-row justify-between items-center py-4 gap-4">
+                    
+                    <div className="flex items-center gap-4 self-center md:self-auto group cursor-pointer" onClick={() => setActiveTab(1)}>
+                      <div className="bg-blue-500 text-white p-3 rounded-2xl border-4 border-slate-900 shadow-[4px_4px_0_0_#0f172a] transform group-hover:rotate-12 transition-transform">
+                        <Icon name="bookOpen" size={28} />
+                      </div>
+                      <div>
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">e-PBD SAINS</h1>
+                        <p className="text-xs bg-yellow-300 inline-block px-2 py-0.5 rounded border-2 border-slate-900 text-slate-900 uppercase tracking-widest font-black leading-none shadow-[2px_2px_0_0_#0f172a]">
+                          KSSR Semakan {CURRENT_YEAR}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Cloud Auto-Sync Indicator Widget */}
+                    <div className="flex items-center gap-3 bg-slate-100 border-4 border-slate-900 p-2 rounded-2xl">
+                      <div className="px-3 py-1.5 bg-white border-2 border-slate-900 rounded-xl flex items-center gap-2 shadow-[2px_2px_0_0_#0f172a]">
+                        {syncStatus === 'saving' && (
+                          <React.Fragment>
+                            <Icon name="cloudLightning" className="text-yellow-500 animate-bounce" size={16} />
+                            <span className="text-[10px] font-black text-yellow-600 uppercase">Menyimpan...</span>
+                          </React.Fragment>
+                        )}
+                        {syncStatus === 'synced' && (
+                          <React.Fragment>
+                            <Icon name="cloud" className="text-emerald-500" size={16} />
+                            <span className="text-[10px] font-black text-emerald-600 uppercase">Disinkron</span>
+                          </React.Fragment>
+                        )}
+                        {syncStatus === 'error' && (
+                          <React.Fragment>
+                            <Icon name="cloud" className="text-red-500" size={16} />
+                            <span className="text-[10px] font-black text-red-600 uppercase">Ralat Autosync</span>
+                          </React.Fragment>
+                        )}
+                        {syncStatus === 'idle' && (
+                          <React.Fragment>
+                            <Icon name="cloud" className="text-slate-400" size={16} />
+                            <span className="text-[10px] font-black text-slate-400 uppercase">Sedia</span>
+                          </React.Fragment>
+                        )}
+                      </div>
+                    </div>
+
+                    <nav className="flex flex-wrap items-center gap-3 justify-center w-full md:w-auto">
+                      {[
+                        { id: 1, icon: "dashboard", label: "UTAMA", color: "hover:bg-cyan-300" },
+                        { id: 2, icon: "users", label: "MURID", color: "hover:bg-pink-300" },
+                        { id: 3, icon: "edit", label: "ISI PBD", color: "hover:bg-yellow-300" },
+                        { id: 6, icon: "award", label: "UJIAN", color: "hover:bg-lime-300" },
+                        { id: 4, icon: "chart", label: "ANALISA", color: "hover:bg-orange-300" },
+                        { id: 5, icon: "printer", label: "CETAK", color: "hover:bg-blue-300" }
+                      ].map(tab => (
+                        <button 
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)} 
+                          className={`flex items-center px-5 py-3 rounded-2xl font-black text-sm transition-all duration-200 border-4 ${
+                            activeTab === tab.id 
+                              ? 'bg-slate-900 text-white border-slate-900 translate-y-1 shadow-none' 
+                              : `bg-white text-slate-900 border-slate-900 shadow-[4px_4px_0_0_#0f172a] hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#0f172a] active:translate-y-1 active:shadow-none ${tab.color}`
+                          }`}
+                        >
+                          <Icon name={tab.icon} size={18} className={`mr-2 ${activeTab === tab.id ? 'text-yellow-400' : 'text-slate-900'}`} />
+                          {tab.label}
+                        </button>
+                      ))}
+                    </nav>
+                  </div>
+                </div>
+              </header>
+
+              {/* --- SMARTPHONE TOP BAR --- */}
+              <div className="md:hidden flex justify-between items-center bg-white border-b-4 border-slate-900 p-4 sticky top-0 z-50 print:hidden">
+                <h1 className="text-xl font-black text-slate-900 flex items-center gap-2" onClick={() => setActiveTab(1)}>
+                  <Icon name="bookOpen" size={20} className="text-blue-500" /> e-PBD SAINS
+                </h1>
+                
+                {/* Compact Smartphone status cloud tracker */}
+                <div className="flex items-center gap-2">
+                  <div className="px-3 py-1.5 bg-slate-100 border-2 border-slate-900 rounded-lg shadow-[1px_1px_0_0_#000] flex items-center gap-1.5">
+                    {syncStatus === 'saving' && (
+                      <React.Fragment>
+                        <Icon name="cloudLightning" className="text-yellow-500 animate-bounce" size={14} />
+                        <span className="text-[8px] font-black text-yellow-600 uppercase">Menyimpan...</span>
+                      </React.Fragment>
+                    )}
+                    {syncStatus === 'synced' && (
+                      <React.Fragment>
+                        <Icon name="cloud" className="text-emerald-500" size={14} />
+                        <span className="text-[8px] font-black text-emerald-600 uppercase">Disinkron</span>
+                      </React.Fragment>
+                    )}
+                    {syncStatus === 'error' && (
+                      <React.Fragment>
+                        <Icon name="cloud" className="text-red-500 animate-pulse" size={14} />
+                        <span className="text-[8px] font-black text-red-600 uppercase">Ralat</span>
+                      </React.Fragment>
+                    )}
+                    {syncStatus === 'idle' && (
+                      <React.Fragment>
+                        <Icon name="cloud" className="text-slate-400" size={14} />
+                        <span className="text-[8px] font-black text-slate-400 uppercase">Sedia</span>
+                      </React.Fragment>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <main className="flex-1 max-w-[90rem] w-full mx-auto p-4 sm:p-6 lg:p-8 pt-8 print:p-0 print:max-w-none print:m-0 z-10">
+                {activeTab === 1 && renderTab1()}
+                {activeTab === 2 && renderTab2()}
+                {activeTab === 3 && renderTab3()}
+                {activeTab === 6 && renderTab6()}
+                {activeTab === 4 && renderTab4()}
+                {activeTab === 5 && renderTab5()}
+              </main>
+
+              {/* --- SMARTPHONE BOTTOM BAR NAVIGATION --- */}
+              <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-4 border-slate-900 z-50 flex justify-between items-end px-2 pb-safe pt-2 shadow-[0_-8px_0_0_rgba(15,23,42,0.1)] print:hidden">
+                {[
+                  { id: 1, icon: "dashboard", label: "UTAMA" },
+                  { id: 2, icon: "users", label: "MURID" },
+                  { id: 3, icon: "edit", label: "ISI PBD" }
+                ].map(tab => (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex flex-col items-center gap-1 p-2 w-14 mb-2 transition-all">
+                      <Icon name={tab.icon} size={26} className={activeTab === tab.id ? 'text-slate-900' : 'text-slate-400'} />
+                      <span className={`text-[9px] font-black tracking-wider ${activeTab === tab.id ? 'text-slate-900 bg-yellow-300 px-2 py-0.5 rounded border-2 border-slate-900' : 'text-slate-500'}`}>{tab.label}</span>
+                    </button>
+                ))}
+                
+                {/* Highlighted Mobile shortcut button for Exam scoring */}
+                <div className="relative -top-6 mx-2">
+                  <button 
+                    onClick={() => setActiveTab(6)} 
+                    className={`flex flex-col items-center justify-center w-16 h-16 rounded-3xl shadow-[4px_4px_0_0_#0f172a] border-4 border-slate-900 transition-transform active:translate-y-2 active:shadow-none ${
+                      activeTab === 6 ? 'bg-yellow-400 text-slate-900 translate-y-1 shadow-[2px_2px_0_0_#0f172a]' : 'bg-blue-500 text-white hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#0f172a]'
+                    }`}
+                    title="Markah Ujian"
+                  >
+                    <Icon name="award" size={28} />
+                  </button>
+                </div>
+
+                {[
+                  { id: 4, icon: "chart", label: "ANALISA" },
+                  { id: 5, icon: "printer", label: "CETAK" }
+                ].map(tab => (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex flex-col items-center gap-1 p-2 w-14 mb-2 transition-all">
+                      <Icon name={tab.icon} size={26} className={activeTab === tab.id ? 'text-slate-900' : 'text-slate-400'} />
+                      <span className={`text-[9px] font-black tracking-wider ${activeTab === tab.id ? 'text-slate-900 bg-cyan-300 px-2 py-0.5 rounded border-2 border-slate-900' : 'text-slate-500'}`}>{tab.label}</span>
+                    </button>
+                ))}
+              </nav>
+            </div>
+          );
+        }
+
+        // Render React Application on DOM
+        const rootElement = document.getElementById("root");
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
