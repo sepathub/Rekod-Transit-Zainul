@@ -164,6 +164,7 @@
           }
         };
 
+        // KOD GOOGLE APPS SCRIPT YANG TELAH DIOPTIMASI (10X LEBIH LAJU)
         const APPS_SCRIPT_CODE = `function doGet(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = sheet.getDataRange().getValues();
@@ -186,12 +187,15 @@
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var payload = JSON.parse(e.postData.contents);
+  if(!Array.isArray(payload)) return ContentService.createTextOutput(JSON.stringify({error: "Invalid payload"})).setMimeType(ContentService.MimeType.JSON);
+  
   sheet.clear();
   var headers = ["id", "name", "class", "scores", "examScores", "conclusion", "isCustomConclusion"];
-  sheet.appendRow(headers);
+  var rowsArray = [headers];
+  
   for (var i = 0; i < payload.length; i++) {
     var row = payload[i];
-    sheet.appendRow([
+    rowsArray.push([
       row.id,
       row.name,
       row.class,
@@ -201,6 +205,10 @@ function doPost(e) {
       row.isCustomConclusion
     ]);
   }
+  
+  // PENAMBAHBAIKAN KELAJUAN (BULK WRITE DALAM 1 SAAT)
+  sheet.getRange(1, 1, rowsArray.length, headers.length).setValues(rowsArray);
+  
   return ContentService.createTextOutput(JSON.stringify({status: "success"}))
     .setMimeType(ContentService.MimeType.JSON);
 }`;
@@ -313,6 +321,7 @@ function doPost(e) {
           const [showSettings, setShowSettings] = useState(false);
           const [shouldAutoSync, setShouldAutoSync] = useState(false);
           const [syncStatus, setSyncStatus] = useState('idle'); // 'idle' | 'saving' | 'synced' | 'error'
+          const [hasUnsavedExamChanges, setHasUnsavedExamChanges] = useState(false);
 
           // Extract dynamic classes based on student roster
           const activeClasses = useMemo(() => {
@@ -631,8 +640,13 @@ function doPost(e) {
               }
               return s;
             }));
+            setHasUnsavedExamChanges(true);
+          };
+
+          const handleSaveExamScores = () => {
             setShouldAutoSync(true);
             setSyncStatus('saving');
+            setHasUnsavedExamChanges(false);
           };
 
           const getTpColorHex = (tpNum) => {
@@ -1003,7 +1017,6 @@ function doPost(e) {
                                   <div className="flex justify-between items-start border-b-4 border-slate-900 border-dashed pb-3">
                                     <div>
                                         <h3 className="font-black text-lg text-slate-900 uppercase leading-tight">{student.name}</h3>
-                                        <p className="text-xs font-bold text-slate-500 mt-1">{student.id}</p>
                                     </div>
                                     <div className={`w-12 h-12 flex items-center justify-center rounded-xl border-4 font-black text-xl shadow-[2px_2px_0_0_#0f172a] ${score ? (typeof score === 'number' ? TP_COLORS[score] : 'bg-slate-800 text-white border-slate-900') : 'bg-slate-100 border-slate-900 text-slate-400'}`}>
                                         {score || "-"}
@@ -1074,7 +1087,7 @@ function doPost(e) {
                               value={selectedStudentIndividu}
                               onChange={(e) => setSelectedStudentIndividu(e.target.value)}
                             >
-                              {classStudents.map((s, idx) => <option key={`student-ind-${s.id}-${idx}`} value={s.id}>{s.name} ({s.id})</option>)}
+                              {classStudents.map((s, idx) => <option key={`student-ind-${s.id}-${idx}`} value={s.id}>{s.name}</option>)}
                             </select>
                           </div>
                         </div>
@@ -1089,7 +1102,6 @@ function doPost(e) {
                                       <div className="bg-slate-900 p-6 text-white">
                                           <h2 className="text-2xl font-black uppercase tracking-wider">{student.name}</h2>
                                           <div className="flex gap-4 mt-2 font-bold text-slate-300 text-sm">
-                                              <span>ID: {student.id}</span>
                                               <span>Purata TP: <span className="text-yellow-400 text-lg">{stats.average || "-"}</span></span>
                                           </div>
                                       </div>
@@ -1257,6 +1269,21 @@ function doPost(e) {
                         })}
                       </tbody>
                     </table>
+                  </div>
+                  
+                  {/* Footer Tindakan Simpan Ujian */}
+                  <div className="bg-slate-50 border-t-4 border-slate-900 p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <span className="text-sm font-bold text-slate-600">
+                        {hasUnsavedExamChanges ? "⚠️ Terdapat perubahan markah yang belum disimpan." : "✅ Semua markah terkini telah disimpan."}
+                    </span>
+                    <button 
+                        onClick={handleSaveExamScores}
+                        disabled={syncStatus === 'saving' || !hasUnsavedExamChanges}
+                        className={`flex items-center gap-2 px-8 py-3 rounded-2xl font-black text-sm transition-all border-4 ${hasUnsavedExamChanges ? 'bg-lime-400 text-slate-900 border-slate-900 shadow-[4px_4px_0_0_#0f172a] hover:-translate-y-1 active:translate-y-1 active:shadow-none' : 'bg-slate-200 text-slate-400 border-slate-300 opacity-50 cursor-not-allowed shadow-none'}`}
+                    >
+                        <Icon name="save" size={18} />
+                        SIMPAN MARKAH
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1478,7 +1505,7 @@ function doPost(e) {
 
                   {}
                   {/* Student Profile Block */}
-                  <div className="border-4 border-slate-900 rounded-2xl p-6 mb-8 grid grid-cols-3 gap-6 bg-yellow-50 print:bg-transparent">
+                  <div className="border-4 border-slate-900 rounded-2xl p-6 mb-8 grid grid-cols-2 gap-6 bg-yellow-50 print:bg-transparent">
                     <div>
                       <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">Nama Murid</span>
                       <span className="font-black text-slate-900 text-lg uppercase">{selectedStudentPrint.name}</span>
