@@ -250,6 +250,12 @@ function doPost(e) {
           );
         };
 
+        // Pengecaman bijak Tahun dari pelbagai format nama Kelas di Google Sheet
+        const extractYear = (className) => {
+            const match = String(className).match(/[1-6]/);
+            return match ? match[0] : "1";
+        };
+
         const generateConclusion = (stats) => {
           const avg = parseFloat(stats.average);
           let base = "Murid belum dinilai untuk penggal ini.";
@@ -285,7 +291,7 @@ function doPost(e) {
 
         const getKPMGrade = (mark) => {
           if (mark === "" || mark === null || mark === undefined) return { grade: "-", color: "text-slate-500", bg: "bg-slate-200", border: "border-slate-900", desc: "-" };
-          const num = parseInt(mark);
+          const num = parseInt(mark, 10);
           if (isNaN(num)) return { grade: "-", color: "text-slate-500", bg: "bg-slate-200", border: "border-slate-900", desc: "-" };
           if (num >= 82) return { grade: "A", color: "text-emerald-700", bg: "bg-emerald-400", border: "border-slate-900", desc: "Cemerlang" };
           if (num >= 66) return { grade: "B", color: "text-cyan-700", bg: "bg-cyan-400", border: "border-slate-900", desc: "Kepujian" };
@@ -365,7 +371,7 @@ function doPost(e) {
                     id: String(row.id),
                     name: studentName,
                     class: className,
-                    year: className.split(" ")[0] || "1",
+                    year: extractYear(className), // PENAMBAHBAIKAN: Format yang lebih stabil
                     scores: scores,
                     examScores: examScores,
                     conclusion: row.conclusion || "",
@@ -460,7 +466,7 @@ function doPost(e) {
             setTimeout(() => setToast({ show: false, message: "" }), 2500);
           };
 
-          const activeYear = selectedClassEntry.split(" ")[0] || "1";
+          const activeYear = extractYear(selectedClassEntry); // PENAMBAHBAIKAN
           const activeDSKP = useMemo(() => DSKP_DATA[activeYear] || {}, [activeYear]);
           const activeTopics = useMemo(() => Object.keys(activeDSKP), [activeDSKP]);
 
@@ -480,13 +486,17 @@ function doPost(e) {
             
             validTopics.forEach(topic => {
                 const val = scoresObj[topic];
-                if (typeof val === 'number') {
-                    total += val;
-                    count++;
-                } else if (val === 'TH') {
+                if (val === 'TH') {
                     thCount++;
                 } else if (val === 'PT') {
                     ptCount++;
+                } else if (val !== undefined && val !== null && val !== "") {
+                    // PENAMBAHBAIKAN: ParseInt dengan ketat
+                    const parsed = parseInt(val, 10);
+                    if (!isNaN(parsed)) {
+                        total += parsed;
+                        count++;
+                    }
                 }
             });
 
@@ -625,6 +635,18 @@ function doPost(e) {
             setSyncStatus('saving');
           };
 
+          const getTpColorHex = (tpNum) => {
+            const hexes = {
+                1: "#f87171", // red-400
+                2: "#fb923c", // orange-400
+                3: "#facc15", // yellow-400
+                4: "#4ade80", // green-400
+                5: "#22d3ee", // cyan-400
+                6: "#c084fc"  // purple-400
+            };
+            return hexes[tpNum] || "#e2e8f0";
+          };
+
           // Render Tab Elements
           const renderTab1 = () => {
             if (students.length === 0) {
@@ -659,9 +681,22 @@ function doPost(e) {
             }
 
             const stats = getDashboardStats(dashboardSelectedClass);
-            const maxValPbd = Math.max(...Object.values(stats.pbdDist), 1);
-            const maxValUpsa = Math.max(...Object.values(stats.upsaDist), 1);
-            const maxValUasa = Math.max(...Object.values(stats.uasaDist), 1);
+            
+            // PENAMBAHBAIKAN GRAF: Skala graf kini dikira mengikut bilangan murid dalam kelas, dengan minimum skala 10 untuk kesan animasi yang cantik.
+            const maxValPbd = Math.max(stats.total, 10);
+            const maxValUpsa = Math.max(stats.total, 10);
+            const maxValUasa = Math.max(stats.total, 10);
+
+            const totalPbd = Object.values(stats.pbdDist).reduce((sum, val) => sum + val, 0);
+            let currentPercent = 0;
+            const conicStops = Object.entries(stats.pbdDist).map(([label, val]) => {
+                if (val === 0) return null;
+                const num = label.split(" ")[1];
+                const pct = (val / totalPbd) * 100;
+                const start = currentPercent;
+                currentPercent += pct;
+                return `${getTpColorHex(num)} ${start}% ${currentPercent}%`;
+            }).filter(Boolean).join(', ');
 
             return (
               <div className="flex flex-col gap-8 animate-in fade-in pb-24 md:pb-0 relative z-10">
@@ -696,27 +731,31 @@ function doPost(e) {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Card 1: PBD TP Distribution */}
+                  {/* Card 1: PBD TP Distribution (Tukar kepada Carta Pai) */}
                   <div className="bg-white border-4 border-slate-900 p-6 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a] flex flex-col">
                     <h3 className="font-black text-lg text-slate-900 uppercase mb-6 flex items-center gap-2 border-b-4 border-slate-900 pb-3"><Icon name="shapes" className="text-blue-500" /> Taburan TP PBD (Keseluruhan)</h3>
-                    <div className="flex-1 flex items-end justify-between gap-1 sm:gap-2 h-64 border-b-4 border-slate-900 pb-4">
-                      {Object.entries(stats.pbdDist).map(([tpLabel, val], index) => {
-                        const heightPct = (val / maxValPbd) * 80 + 10;
-                        const num = tpLabel.split(" ")[1];
-                        return (
-                          <div key={tpLabel} className="flex-1 flex flex-col items-center group relative h-full justify-end">
-                            <span className="text-xs font-black text-slate-900 mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white border-2 border-slate-900 px-1.5 py-0.5 rounded shadow absolute top-0 z-20">
-                              {val}
-                            </span>
-                            <div 
-                              style={{ height: `${heightPct}%` }}
-                              className={`w-full border-4 border-slate-900 rounded-t-xl transition-all duration-500 ${TP_COLORS[num]} group-hover:-translate-y-1 shadow-[2px_2px_0_0_#0f172a] group-hover:shadow-[4px_4px_0_0_#0f172a]`}
-                            ></div>
-                            <span className="text-[10px] font-black text-slate-700 mt-2 whitespace-nowrap">{tpLabel}</span>
-                          </div>
-                        );
-                      })}
+                    
+                    <div className="flex-1 flex flex-col items-center justify-center gap-6 h-64 border-b-4 border-slate-900 pb-4">
+                      <div 
+                        className="w-40 h-40 rounded-full border-4 border-slate-900 shadow-[4px_4px_0_0_#0f172a] transition-all transform hover:scale-105"
+                        style={{ background: totalPbd > 0 ? `conic-gradient(${conicStops})` : 'conic-gradient(#e2e8f0 0% 100%)' }}
+                      ></div>
+                      
+                      <div className="flex flex-wrap gap-2 justify-center w-full px-2">
+                        {Object.entries(stats.pbdDist).map(([label, val]) => {
+                          const num = label.split(" ")[1];
+                          if (val === 0) return null;
+                          return (
+                            <div key={label} className="flex items-center gap-1.5 text-xs font-black bg-slate-50 border-2 border-slate-900 px-2 py-1 rounded-lg">
+                              <span className={`w-3 h-3 rounded-full border-2 border-slate-900 ${TP_COLORS[num]}`}></span>
+                              {label} <span className="text-slate-500">({val})</span>
+                            </div>
+                          )
+                        })}
+                        {totalPbd === 0 && <div className="text-xs font-bold text-slate-500">Tiada Data</div>}
+                      </div>
                     </div>
+
                     <div className="mt-4 flex justify-between items-center bg-slate-50 p-3 rounded-xl border-2 border-slate-900">
                        <span className="text-xs font-bold text-slate-600">Pelajar Dinilai:</span>
                        <span className="font-black text-slate-900">{stats.assessed} / {stats.total} ({stats.percentAssessed}%)</span>
@@ -787,6 +826,53 @@ function doPost(e) {
                     </div>
                   </div>
                 </div>
+
+                {/* Info Reference Cards (Deskripsi TP & Gred Markah) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
+                  {/* TP Description Card */}
+                  <div className="bg-white border-4 border-slate-900 p-6 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a]">
+                    <h3 className="font-black text-lg text-slate-900 uppercase mb-4 flex items-center gap-2 border-b-4 border-slate-900 pb-2"><Icon name="shapes" className="text-pink-500" /> Deskripsi Tahap Penguasaan (TP)</h3>
+                    <ul className="space-y-3">
+                      {[
+                        { tp: 1, desc: "Tahu / Sangat Terhad" },
+                        { tp: 2, desc: "Tahu dan Faham / Terhad" },
+                        { tp: 3, desc: "Tahu, Faham dan Boleh Buat / Memuaskan" },
+                        { tp: 4, desc: "Tahu, Faham dan Boleh Buat dengan Beradab / Baik" },
+                        { tp: 5, desc: "Tahu, Faham dan Boleh Buat dengan Beradab Terpuji / Sangat Baik" },
+                        { tp: 6, desc: "Tahu, Faham dan Boleh Buat dengan Beradab Mithali / Cemerlang" }
+                      ].map(item => (
+                        <li key={`tp-info-${item.tp}`} className="flex items-start gap-3">
+                          <span className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-black border-2 border-slate-900 shadow-[2px_2px_0_0_#0f172a] ${TP_COLORS[item.tp]}`}>{item.tp}</span>
+                          <span className="text-xs sm:text-sm font-bold text-slate-700 leading-tight pt-1">{item.desc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Grade Marking Scale Card */}
+                  <div className="bg-white border-4 border-slate-900 p-6 rounded-[2rem] shadow-[8px_8px_0_0_#0f172a]">
+                    <h3 className="font-black text-lg text-slate-900 uppercase mb-4 flex items-center gap-2 border-b-4 border-slate-900 pb-2"><Icon name="award" className="text-lime-500" /> Skala Gred Markah (Ujian)</h3>
+                    <ul className="space-y-3">
+                      {[
+                        { grade: "A", range: "82 - 100", desc: "Cemerlang", color: "bg-emerald-400 text-emerald-900" },
+                        { grade: "B", range: "66 - 81", desc: "Kepujian", color: "bg-cyan-400 text-cyan-900" },
+                        { grade: "C", range: "50 - 65", desc: "Baik", color: "bg-yellow-400 text-yellow-900" },
+                        { grade: "D", range: "35 - 49", desc: "Memuaskan", color: "bg-orange-400 text-orange-900" },
+                        { grade: "E", range: "20 - 34", desc: "Mencapai Tahap Minimum", color: "bg-red-400 text-red-900" },
+                        { grade: "F", range: "0 - 19", desc: "Belum Mencapai Tahap Minimum", color: "bg-rose-500 text-white" }
+                      ].map(item => (
+                        <li key={`grade-info-${item.grade}`} className="flex items-center gap-3">
+                          <span className={`flex-shrink-0 w-10 h-8 flex items-center justify-center rounded-lg font-black border-2 border-slate-900 shadow-[2px_2px_0_0_#0f172a] ${item.color}`}>{item.grade}</span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-black text-slate-900 leading-none">{item.range}</span>
+                            <span className="text-[11px] sm:text-xs font-bold text-slate-500">{item.desc}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
               </div>
             );
           };
@@ -821,7 +907,6 @@ function doPost(e) {
                       <thead>
                         <tr className="bg-blue-400 border-b-4 border-slate-900 text-slate-900">
                           <th className="p-4 font-black w-12 text-center border-r-4 border-slate-900">No</th>
-                          <th className="p-4 font-black w-32 border-r-4 border-slate-900">ID Murid</th>
                           <th className="p-4 font-black border-slate-900">Nama Penuh (Seperti di Google Sheets)</th>
                         </tr>
                       </thead>
@@ -829,7 +914,6 @@ function doPost(e) {
                         {classStudents.map((student, idx) => (
                           <tr key={`${student.id}-${idx}`} className="hover:bg-yellow-100 transition-colors group bg-white">
                             <td className="p-4 text-slate-900 font-black text-center border-r-4 border-slate-900 bg-slate-100 group-hover:bg-yellow-200">{idx + 1}</td>
-                            <td className="p-4 font-black text-slate-600 border-r-4 border-slate-900">{student.id}</td>
                             <td className="p-4">
                               <span className="font-black text-slate-900 text-base">{student.name}</span>
                             </td>
@@ -1137,7 +1221,6 @@ function doPost(e) {
                               <td className="p-4 text-slate-900 font-black text-center border-r-4 border-slate-900 bg-slate-100 group-hover:bg-lime-200">{idx + 1}</td>
                               <td className="p-4 border-r-4 border-slate-900">
                                 <span className="font-black text-slate-900 text-base">{student.name}</span>
-                                <span className="block text-xs font-bold text-slate-500 mt-1">{student.id}</span>
                               </td>
                               <td className="p-4 border-r-4 border-slate-900 bg-orange-50/50">
                                 <div className="flex items-center justify-center gap-4">
@@ -1182,7 +1265,7 @@ function doPost(e) {
 
           const renderTab4 = () => {
             const classStudents = students.filter(s => s.class === selectedClassAnalysis);
-            const yrStr = selectedClassAnalysis.split(" ")[0] || "1";
+            const yrStr = extractYear(selectedClassAnalysis); // PENAMBAHBAIKAN
             const yrTopics = Object.keys(DSKP_DATA[yrStr] || {});
             
             const themes = {};
@@ -1297,8 +1380,7 @@ function doPost(e) {
               : students.filter(s => s.class === selectedClassPrint);
 
             const filteredPrintList = classFilteredStudents.filter(s => 
-              s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-              s.id.toLowerCase().includes(searchQuery.toLowerCase())
+              s.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
 
             if (!selectedStudentPrint) {
@@ -1342,7 +1424,7 @@ function doPost(e) {
                         >
                           <div>
                             <div className="font-black text-slate-900 text-base uppercase">{student.name}</div>
-                            <div className="text-sm font-bold text-slate-600 mt-1">{student.id} • <span className="text-blue-600 bg-blue-100 px-2 py-0.5 rounded border-2 border-blue-200">{student.class}</span></div>
+                            <div className="text-sm font-bold text-slate-600 mt-1"><span className="text-blue-600 bg-blue-100 px-2 py-0.5 rounded border-2 border-blue-200">{student.class}</span></div>
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="text-[10px] font-black bg-yellow-300 text-slate-900 border-2 border-slate-900 px-3 py-1.5 rounded-xl shadow-[2px_2px_0_0_#0f172a] opacity-0 group-hover:opacity-100 transition-all transform group-hover:rotate-3 hidden sm:block">PILIH</span>
@@ -1394,8 +1476,9 @@ function doPost(e) {
                     <h3 className="text-lg font-bold text-slate-700">Mata Pelajaran: Sains KSSR (Semakan) - Tahun {yrStr}</h3>
                   </div>
 
+                  {}
                   {/* Student Profile Block */}
-                  <div className="border-4 border-slate-900 rounded-2xl p-6 mb-8 grid grid-cols-2 gap-y-4 bg-yellow-50 print:bg-transparent">
+                  <div className="border-4 border-slate-900 rounded-2xl p-6 mb-8 grid grid-cols-3 gap-6 bg-yellow-50 print:bg-transparent">
                     <div>
                       <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">Nama Murid</span>
                       <span className="font-black text-slate-900 text-lg uppercase">{selectedStudentPrint.name}</span>
@@ -1403,10 +1486,6 @@ function doPost(e) {
                     <div>
                       <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">Kelas</span>
                       <span className="font-black text-slate-900 text-lg">{selectedStudentPrint.class}</span>
-                    </div>
-                    <div>
-                      <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">ID Murid (MyKid)</span>
-                      <span className="font-black text-slate-900 text-lg">{selectedStudentPrint.id}</span>
                     </div>
                     <div>
                       <span className="text-xs font-black text-slate-500 uppercase block tracking-wider mb-1">Sesi Akademik</span>
@@ -1611,7 +1690,7 @@ function doPost(e) {
                         {syncStatus === 'synced' && (
                           <React.Fragment>
                             <Icon name="cloud" className="text-emerald-500" size={16} />
-                            <span className="text-[10px] font-black text-emerald-600 uppercase">🟢 Disinkron</span>
+                            <span className="text-[10px] font-black text-emerald-600 uppercase">🟢 Autosync</span>
                           </React.Fragment>
                         )}
                         {syncStatus === 'error' && (
